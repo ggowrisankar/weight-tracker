@@ -18,7 +18,13 @@ function Calendar () {
   const daysArray = [
     ...Array(firstDayofMonth).fill(null),                  //Empty slots until the first day
     ...Array.from({length:daysInMonth}, (_,i) => i+1)     //Creating an array starting from 1 to total no of days
-  ];   
+  ];
+
+  //Converting days array into chunks of weeks
+  const weeks = [];
+  for (let i=0; i < daysArray.length; i += 7 ) {
+    weeks.push(daysArray.slice(i, i + 7));
+  }
 
   //Stores weight for each day
   const[weights, setWeights] = useState(() => {           //State: Store weights per day
@@ -32,13 +38,13 @@ function Calendar () {
     if (saved) {
       setWeights(JSON.parse(saved));
     }
-  }, []);                     //[] - dependency to initially render
+  }, []);                     //[] - Dependency array to initially render and run only once
 */
 
   //Save to localstorage after any updation
   useEffect(() => {
     localStorage.setItem("weights", JSON.stringify(weights));
-  }, [weights]);              //[weights] - dependency to update after every change
+  }, [weights]);              //[weights] - Dependency array to update after every change
 
   //Handle input change
   const handleWeightChange = (day, value) => {      //Handler to update each weight
@@ -56,8 +62,8 @@ function Calendar () {
       
       {/* Weekday headers */}
       <div style={{
-        display: "grid", 
-        gridTemplateColumns: "repeat(7, 1fr)", 
+        display: "grid",
+        gridTemplateColumns: "repeat(8, 1fr)",            //7 days + 1 avg column
         marginBottom: "10px",
         fontWeight: "bold",
         textAlign: "center"
@@ -68,9 +74,63 @@ function Calendar () {
             {day}
           </div>
         ))}
+        <div>Avg</div>                                    {/* Appending Avg column */}
+      </div>
+
+      {/* Weekly grid */}
+      <div>
+        {weeks.map((week, wIndex) => (                    //Rendering week chunks one by one
+          <div
+            key={wIndex}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(8, 1fr)",     //7 days + 1 avg column
+              textAlign: "center",
+              gap: "5px",
+              marginBottom: "10px"
+            }}
+          >
+            {week.map((day, dIndex) => (                  //Rendering each day inside each week chunk. Invalid days are grayed out
+              <div
+                key={`${year}-${month+1}-${day || `empty-${dIndex}`}`}
+                style={{
+                  border: "1px solid gray",
+                  padding: "10px",
+                  backgroundColor: day ? "black" : "#f5f5f523",
+                  color: "white"
+                }}
+              >
+                {day && (                                 //Rendering only if the days are valid
+                  <>
+                    {<div style={{marginBottom: "5px"}}>{day}</div>}
+                    <input type="number"
+                      placeholder="kg"
+                      value={weights[day] || ""}
+                      onChange={(e) => handleWeightChange(day, e.target.value)}
+                      style={{width: "100%", marginTop: "5px"}}
+                    />
+                  </>
+                )}
+              </div>
+            ))}
+            <div 
+              style={{
+                display: "grid",
+                placeItems: "center",
+                border: "1px solid gray",
+                padding: "10px",
+                fontWeight: "bold",
+                backgroundColor: "black"
+              }}
+            >
+              Avg
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Calendar grid */}
+   {/*   
       <div style={{
           display: "grid", 
           gridTemplateColumns: "repeat(7, 1fr)", 
@@ -88,7 +148,6 @@ function Calendar () {
               color: "white"
             }}
           >
-            {/* Only show if it's a valid day */}
             {day && (
               <>
                 {<div style={{marginBottom: "5px"}}>{day}</div>}
@@ -102,7 +161,8 @@ function Calendar () {
             )}
           </div>
         ))}
-      </div>
+      </div> 
+   */}
       {/* Debug line to check useStates are working correctly */}
       {/*<pre>{JSON.stringify(weights, null, 2)}</pre>*/} 
     </div>
