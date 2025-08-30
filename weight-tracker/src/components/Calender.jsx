@@ -54,13 +54,26 @@ function Calendar () {
     }))
   }
 
+  //Calculating weekly average
+  function calculateAverage(week) {
+    const weekWeights = week
+    .filter((day) => day !== null && weights[day])    //Filtering out only valid days with weights entered
+    .map((day) => parseFloat(weights[day]));          //Converting string to num for performing calculations
+
+    const avg = 
+      weekWeights.length > 0
+        ? (weekWeights.reduce((sum, val) => sum + val, 0) / weekWeights.length).toFixed(1)
+        : null;
+    return avg;   
+  }
+  
   return(
     <div>
-      {/* Month + Year Title */}
+      {/* --MONTH + YEAR TITLE-- */}
       <h2>{monthName[month]}, {year}</h2>
       {/*<h2>{today.toLocaleString("default", {month: "long"})} {year}</h2>*/}  {/* Uses system local settings */}
       
-      {/* Weekday headers */}
+      {/* --WEEKDAY HEADERS-- */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(8, 1fr)",            //7 days + 1 avg column
@@ -74,10 +87,10 @@ function Calendar () {
             {day}
           </div>
         ))}
-        <div>Avg</div>                                    {/* Appending Avg column */}
+        <div>Average</div>                                    {/* Appending Avg column */}
       </div>
 
-      {/* Weekly grid */}
+      {/* --WEEKLY GRID-- */}
       <div>
         {weeks.map((week, wIndex) => (                    //Rendering week chunks one by one
           <div
@@ -100,7 +113,7 @@ function Calendar () {
                   color: "white"
                 }}
               >
-                {day && (                                 //Rendering only if the days are valid
+                {day && (                                 //Rendering only if the days are valid > Input form is appended
                   <>
                     {<div style={{marginBottom: "5px"}}>{day}</div>}
                     <input type="number"
@@ -113,23 +126,23 @@ function Calendar () {
                 )}
               </div>
             ))}
-            <div 
+            <div                                          //Weekly average box
               style={{
                 display: "grid",
                 placeItems: "center",
                 border: "1px solid gray",
                 padding: "10px",
                 fontWeight: "bold",
-                backgroundColor: "black"
+                backgroundColor: "black",
               }}
             >
-              Avg
+              {calculateAverage(week)}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Calendar grid */}
+      {/* --CALENDAR GRID-- */}
    {/*   
       <div style={{
           display: "grid", 
