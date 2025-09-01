@@ -20,11 +20,10 @@ function Calendar () {
     ...Array.from({length:daysInMonth}, (_,i) => i+1)     //Creating an array starting from 1 to total no of days
   ];
 
-  //Converting days array into chunks of weeks
-  const weeks = [];
-  for (let i=0; i < daysArray.length; i += 7 ) {
-    weeks.push(daysArray.slice(i, i + 7));
-  }
+  //Checking if each week has 7 days. If not, rest are filled with nulls(blanks)
+  while (daysArray.length % 7 !== 0) {
+    daysArray.push(null);
+  } 
 
   //Stores weight for each day
   const[weights, setWeights] = useState(() => {           //State: Store weights per day
@@ -54,19 +53,35 @@ function Calendar () {
     }))
   }
 
-  //Calculating weekly average
-  function calculateAverage(week) {
+  //Converting days array into chunks of weeks
+  const weeks = [];
+  for (let i=0; i < daysArray.length; i += 7 ) {
+    weeks.push(daysArray.slice(i, i + 7));
+  }
+
+  //Calculating Weekly average
+  function calculateWeeklyAverage(week) {
     const weekWeights = week
     .filter((day) => day !== null && weights[day])    //Filtering out only valid days with weights entered
     .map((day) => parseFloat(weights[day]));          //Converting string to num for performing calculations
 
-    const avg = 
-      weekWeights.length > 0
+    return weekWeights.length > 0
         ? (weekWeights.reduce((sum, val) => sum + val, 0) / weekWeights.length).toFixed(1)
-        : null;
-    return avg;   
+        : null;  
   }
   
+  //Calculating Monthly average
+  function calculateMonthlyAverage() {
+    const monthWeights = daysArray
+      .filter((day) => day !== null && weights[day])
+      .map((day) => parseFloat(weights[day]));
+
+    return monthWeights.length > 0
+      ? (monthWeights.reduce((sum, val) => sum + val, 0) / monthWeights.length).toFixed(1)
+      : null;
+  }
+
+
   return(
     <div>
       {/* --MONTH + YEAR TITLE-- */}
@@ -87,7 +102,7 @@ function Calendar () {
             {day}
           </div>
         ))}
-        <div>Average</div>                                    {/* Appending Avg column */}
+        <div>Average</div>                                  {/* Appending Avg column */}
       </div>
 
       {/* --WEEKLY GRID-- */}
@@ -115,6 +130,7 @@ function Calendar () {
               >
                 {day && (                                 //Rendering only if the days are valid > Input form is appended
                   <>
+                    {/* Each component should be inside separate divs. Here day is under one, and input works on its own*/}
                     {<div style={{marginBottom: "5px"}}>{day}</div>}
                     <input type="number"
                       placeholder="kg"
@@ -136,10 +152,20 @@ function Calendar () {
                 backgroundColor: "black",
               }}
             >
-              {calculateAverage(week)}
+              {calculateWeeklyAverage(week)}
             </div>
           </div>
         ))}
+      </div>
+
+      {/* --MONTHLY AVERAGE FIELD-- */}
+      <div
+        style={{ 
+          textAlign: "center", 
+          marginTop: "20px", 
+          fontWeight: "bold" 
+        }}>
+        Monthly Average: {calculateMonthlyAverage()}
       </div>
 
       {/* --CALENDAR GRID-- */}
