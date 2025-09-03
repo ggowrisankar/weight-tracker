@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from "react";
 
 function Calendar () {
-  const today = new Date();
+  const[today,setToday] = useState(new Date());
   const year = today.getFullYear();
   const month = today.getMonth();           //Getting month in index form
-  const[currentMonth, setCurrentMonth] = useState(month);
-  const[currentYear, setCurrentYear] = useState(year);
+//  const[currentMonth, setCurrentMonth] = useState(month);
+//  const[currentYear, setCurrentYear] = useState(year);
   const monthName = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const weekDays = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
   //Get number of days in the current month
-  //const daysInMonth = new Date(year, month+1, 0).getDate(); //Using day "0" of next month gives last day of current month
-  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+  const daysInMonth = new Date(year, month+1, 0).getDate(); //Using day "0" of next month gives last day of current month
+//  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
   
   //Align first day of the month as Mon-Sun (default Sun-Sat)
-  //const firstDay = new Date(year, month, 1).getDay();   //Returns the first day of the month (Sun-Mon) as indices 0-6
-  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+  const firstDay = new Date(year, month, 1).getDay();   //Returns the first day of the month (Sun-Mon) as indices 0-6
+//  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
   const firstDayofMonth =  (firstDay + 6) % 7;        //Converting to Mon-Sun as indices 0-6
 
   //Build days array (nulls = empty slots before day 1)
@@ -29,7 +29,8 @@ function Calendar () {
     daysArray.push(null);
   } 
 
-  const storageKey = `weights-${currentYear}-${currentMonth + 1}`; //month + 1 so Jan=1, Feb=2 ...
+//  const storageKey = `weights-${currentYear}-${currentMonth + 1}`; //month + 1 so Jan=1, Feb=2 ...
+  const storageKey = `weights-${year}-${month + 1}`;
 
   //Stores weight for each day
   const[weights, setWeights] = useState(() => {           //State: Store weights per day
@@ -63,7 +64,7 @@ function Calendar () {
   }, [weights, storageKey]);     //Both are needed in the dependency array to ensure this runs when either changes. storageKey is added since its dynamic based on year/month and if it changes without a change in weights, the effect would not run unless it's listed. Including both ensures we always write to the correct key in localStorage.
 
   //Previous & Next Month Navigation
-  function goToPreviousMonth() {
+/* function goToPreviousMonth() {
     if(currentMonth === 0) {
       setCurrentMonth(11);                  //December
       setCurrentYear(currentYear - 1);      //Previous year
@@ -78,6 +79,14 @@ function Calendar () {
     } else {
       setCurrentMonth(currentMonth + 1);
     }
+  }
+*/
+
+  function goToPreviousMonth() {
+    setToday(new Date(year, month - 1, 1));
+  }
+  function goToNextMonth() {
+    setToday(new Date(year, month + 1, 1));
   }
 
   //Handle input change
@@ -130,8 +139,8 @@ function Calendar () {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center"}}>
         <button onClick={goToPreviousMonth}>Prev</button>
 
-        <h2>{monthName[currentMonth]}, {currentYear}</h2>
-        {/*<h2>{monthName[month]}, {year}</h2>*/}
+        {/*<h2>{monthName[currentMonth]}, {currentYear}</h2>*/}
+        <h2>{monthName[month]}, {year}</h2>
         {/*<h2>{new Date(currentYear, currentMonth).toLocaleString("default", { month: "long" })} {currentYear}</h2>*/}
         {/*<h2>{today.toLocaleString("default", {month: "long"})} {year}</h2>*/}  {/* Uses system local settings */}
 
