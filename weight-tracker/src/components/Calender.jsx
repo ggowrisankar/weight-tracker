@@ -4,14 +4,18 @@ function Calendar () {
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth();           //Getting month in index form
+  const[currentMonth, setCurrentMonth] = useState(month);
+  const[currentYear, setCurrentYear] = useState(year);
   const monthName = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const weekDays = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
   //Get number of days in the current month
-  const daysInMonth = new Date(year, month+1, 0).getDate(); //Using day "0" of next month gives last day of current month
+  //const daysInMonth = new Date(year, month+1, 0).getDate(); //Using day "0" of next month gives last day of current month
+  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
   
   //Align first day of the month as Mon-Sun (default Sun-Sat)
-  const firstDay = new Date(year, month, 1).getDay();   //Returns the first day of the month (Sun-Mon) as indices 0-6
+  //const firstDay = new Date(year, month, 1).getDay();   //Returns the first day of the month (Sun-Mon) as indices 0-6
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
   const firstDayofMonth =  (firstDay + 6) % 7;        //Converting to Mon-Sun as indices 0-6
 
   //Build days array (nulls = empty slots before day 1)
@@ -25,9 +29,12 @@ function Calendar () {
     daysArray.push(null);
   } 
 
+  const storageKey = `weights-${currentYear}-${currentMonth + 1}`; //month + 1 so Jan=1, Feb=2 ...
+
   //Stores weight for each day
   const[weights, setWeights] = useState(() => {           //State: Store weights per day
-    const saved = localStorage.getItem("weights");        //Load data from localstorage for first render
+  //  const saved = localStorage.getItem("weights");        //Load data from localstorage for first render
+    const saved = localStorage.getItem(storageKey);
     return saved ? JSON.parse(saved) : {};
   });    
 
@@ -40,17 +47,53 @@ function Calendar () {
   }, []);                     //[] - Dependency array to initially render and run only once
 */
 
-  //Save to localstorage after any updation
+  //Load data when month/year changes
   useEffect(() => {
+    const saved = localStorage.getItem(storageKey);
+    setWeights(saved ? JSON.parse(saved) : {});
+  }, [storageKey]);
+
+  //Save to localstorage after any updation
+/*  useEffect(() => {
     localStorage.setItem("weights", JSON.stringify(weights));
   }, [weights]);              //[weights] - Dependency array to update after every change
+*/
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify(weights));
+  }, [weights, storageKey]);     //Both are needed in the dependency array to ensure this runs when either changes. storageKey is added since its dynamic based on year/month and if it changes without a change in weights, the effect would not run unless it's listed. Including both ensures we always write to the correct key in localStorage.
+
+  //Previous & Next Month Navigation
+  function goToPreviousMonth() {
+    if(currentMonth === 0) {
+      setCurrentMonth(11);                  //December
+      setCurrentYear(currentYear - 1);      //Previous year
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  }
+  function goToNextMonth() {
+    if(currentMonth === 11) {
+      setCurrentMonth(0);                   //January
+      setCurrentYear(currentYear + 1);      //Next year
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  }
 
   //Handle input change
-  const handleWeightChange = (day, value) => {      //Handler to update each weight
+/*  const handleWeightChange = (day, value) => {      //Handler to update each weight
     setWeights((prev) => ({
       ...prev,
       [day]:value
     }))
+  }
+*/
+  const handleWeightChange = (day, value) => {
+    setWeights((prev) => {
+      const newWeights = {...prev, [day]:value};
+      localStorage.setItem(storageKey, JSON.stringify(newWeights));
+      return newWeights;
+    });
   }
 
   //Converting days array into chunks of weeks
@@ -81,12 +124,19 @@ function Calendar () {
       : null;
   }
 
-
   return(
     <div>
-      {/* --MONTH + YEAR TITLE-- */}
-      <h2>{monthName[month]}, {year}</h2>
-      {/*<h2>{today.toLocaleString("default", {month: "long"})} {year}</h2>*/}  {/* Uses system local settings */}
+      {/* --MONTH + YEAR TITLE WITH NAVIGATION BUTTONS-- */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+        <button onClick={goToPreviousMonth}>Prev</button>
+
+        <h2>{monthName[currentMonth]}, {currentYear}</h2>
+        {/*<h2>{monthName[month]}, {year}</h2>*/}
+        {/*<h2>{new Date(currentYear, currentMonth).toLocaleString("default", { month: "long" })} {currentYear}</h2>*/}
+        {/*<h2>{today.toLocaleString("default", {month: "long"})} {year}</h2>*/}  {/* Uses system local settings */}
+
+        <button onClick={goToNextMonth}>Next</button>
+      </div>
       
       {/* --WEEKDAY HEADERS-- */}
       <div style={{
