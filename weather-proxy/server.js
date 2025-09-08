@@ -14,12 +14,40 @@ app.get("/weather", async(req, res) => {          //Execute the following functi
 //  const apiKey = "935b90efd6ee4001db49960beac2fcdf";
 
   try {
-    const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`
-    );
+    const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`);
+
+  //Error Handling: [Note: response.status or headers don't require 'await' since its part of the metadata and is handled during fetch('url')]
+    if (!response.ok) {
+      if (response.status === 400) return res.status(400).json({error: "Bad Request"});
+      if (response.status === 401) return res.status(401).json({error: "Invalid Key"});
+      if (response.status === 404) return res.status(404).json({error: "'City' value missing"});
+
+      return res.status(response.status).json({error: "Something went wrong"});     //Global error handler
+    }
+    
+/*//Mapping method to avoid repetition of codes
+   const errorMessages = {
+    400: "Bad Request",
+    401: "Invalid Key",
+    404: "'City' value missing"
+   };
+   if (!response.ok) {
+    const errorMsg = errorMessages[response.status] || "Something went wrong";
+    return res.status(response.status).json({error: errorMsg});
+   }
+*/
+
+/*//Error handler if the API provides proper error messages:
+  if (!response.ok) {
+    //API might have "error json" with keys like "code" or "message". So await is needed to ready the body.
+    const errorData = await response.json().catch(() => ({}));;    //Safe parsing since we're calling await separately
+    return res.status(response.status).json({error: errorData.message || "Something went wrong"});
+  }
+*/
     const data = await response.json();
-    res.json(data);                             //Forward API response to frontend
-  } catch (err) {
+    res.json(data);                             //Forward valid API response to frontend
+  }
+  catch (err) {
     console.error("Proxy error: ",err.message);
     res.status(500).json({
       error: "Failed to fetch weather data",    //Forward a safe and consistent error msg to frontend
