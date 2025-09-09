@@ -97,6 +97,7 @@ function Calendar () {
     }))
   }
 */
+
   const handleWeightChange = (day, value) => {
     setWeights((prev) => {
       const newWeights = {...prev, [day]:value};
