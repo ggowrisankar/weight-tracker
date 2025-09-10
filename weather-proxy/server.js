@@ -65,7 +65,7 @@ app.get("/weather", async(req, res) => {          //Execute the following functi
       ); 
     });
 
-    //Transform the data for today and tomorrow
+    //Transform the data for today and tomorrow. forEach is used since we are mutating the filtered array to return a new object { <day>: {description: <value>, icon: <value} }
     const transformedData = {};
     filteredData.forEach(item => {
       const day = new Date(item.dt_txt).getDate();
@@ -85,7 +85,7 @@ app.get("/weather", async(req, res) => {          //Execute the following functi
     const filteredData = data.list.filter(item => 
       ((item.dt_txt.startsWith(today) || item.dt_txt.startsWith(tomorrow)) && item.dt_txt.split(" ")[1] === "06:00:00")
     );
-    const finalData = filteredData.map(item => {
+    const finalData = filteredData.map(item => {    //Map is used since each item in filteredData is converted into a formatted string, with the same array length
       return `${item.dt_txt} - ${item.main.temp}C - ${item.weather[0].main} - ${item.weather[0].description}`; 
     });
     res.json(finalData);

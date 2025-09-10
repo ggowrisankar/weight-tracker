@@ -134,6 +134,22 @@ function Calendar () {
       : null;
   }
 
+  //Call Weather API to fetch weather details
+  const [weather, setWeather] = useState({});
+  useEffect(() => {
+    const fetchWeather = async () => {      //Async function need to called separately since react expect useEffect to only return nothing or a cleanup function
+      try {
+        const response = await fetch("http://localhost:3000/weather?city=London");
+        const data = await response.json();
+        console.log("Weather Data:", data);
+        setWeather(data);
+      } catch (err) {
+        console.error("Error fetching weather data: ", err);
+      }
+    };
+    fetchWeather();
+  }, []);                                 //Dependency [] to only run once during mount
+
   return(
     <div>
       {/* --MONTH + YEAR TITLE WITH NAVIGATION BUTTONS-- */}
