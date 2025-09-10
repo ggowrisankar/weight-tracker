@@ -137,13 +137,23 @@ function Calendar () {
   //Call Weather API to fetch weather details
   const [weather, setWeather] = useState({});
   useEffect(() => {
-    const fetchWeather = async () => {      //Async function need to called separately since react expect useEffect to only return nothing or a cleanup function
+    const weatherKey = `weather-${year}-${month + 1}`;
+    const savedWeather = localStorage.getItem(weatherKey);
+    //Load cached weather immediately if present
+    if (savedWeather) {
+      setWeather(JSON.parse(savedWeather));
+    }
+    
+    const fetchWeather = async () => {      //Async function need to be called separately since react expect useEffect to only return nothing or a cleanup function
       try {
         const response = await fetch("http://localhost:3000/weather?city=London");
         const data = await response.json();
         console.log("Weather Data:", data);
         setWeather(data);
-      } catch (err) {
+        localStorage.setItem(weatherKey, JSON.stringify(data));   //Save/Overwrite the key with fresh data
+        //Note: In localStorage, new values will entirely overwrite/replace the original value of the key. It wont stack-up/append and the data will never be duplicated/repeated.
+      } 
+      catch (err) {
         console.error("Error fetching weather data: ", err);
       }
     };

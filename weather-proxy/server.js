@@ -77,10 +77,11 @@ app.get("/weather", async(req, res) => {          //Execute the following functi
         icon: item.weather[0].icon
       };
     })
-
-    // Create month/year key like "weather-2025-9"
+    res.json(transformedData);
+    /*// Create month/year key like "weather-2025-9"  (Removing since monthKey is handled in frontend)
     const monthKey = `weather-${today.getFullYear()}-${today.getMonth() + 1}`;      // +1 since months are index based
     res.json({ [monthKey]: transformedData });    //Forward valid API response to frontend
+    */
 
     /*//Transform Data to only send required code to the front end (Practice code)
     const today = new Date().toISOString().split("T")[0];
