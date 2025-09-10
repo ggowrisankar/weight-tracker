@@ -1,12 +1,15 @@
-import express from "express";                       //Framework for creating web servers
+import express from "express";                      //Framework for creating web servers
 import fetch from "node-fetch";                     //Allows us to use fetch in node.js
 import dotenv from "dotenv";                        //Environmental variable file fetch. Used for security and protecting sensitive infos like API keys.
+import cors from "cors";                            //Importing CORS to bypass restrictions
 
 dotenv.config();                                    //Loading variables from env 
 
 const app = express();                            //Our server
 const PORT = process.env.PORT || 3000;            //Using available ports after checking in env.Server will be available at https://localhost:3000
 const apiKey = process.env.API_KEY;               //Read API_KEY from env
+
+app.use(cors());                                  //Now the server will be able to run anywhere without having to be inside the local url. (Keeping it open for now)
 
 // Define route. Simple endpoint: /weather?city=London
 app.get("/weather", async(req, res) => {          //Execute the following function whenever https://localhost:3000/weather is ran
