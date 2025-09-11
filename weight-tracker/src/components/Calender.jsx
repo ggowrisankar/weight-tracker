@@ -4,6 +4,7 @@ function Calendar () {
   const[today,setToday] = useState(new Date());
   const year = today.getFullYear();
   const month = today.getMonth();           //Getting month in index form
+  const currentDate = new Date();
 //  const[currentMonth, setCurrentMonth] = useState(month);
 //  const[currentYear, setCurrentYear] = useState(year);
   const monthName = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -83,7 +84,7 @@ function Calendar () {
 */
 
   function goToPreviousMonth() {
-    setToday(new Date(year, month - 1, 1));
+    setToday(new Date(year, month - 1, 1));   //(year, month, day)
   }
   function goToNextMonth() {
     setToday(new Date(year, month + 1, 1));
@@ -211,18 +212,46 @@ function Calendar () {
                   border: "1px solid gray",
                   padding: "10px",
                   backgroundColor: day ? "black" : "#f5f5f523",
-                  color: "white"
+                  color: "white",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center"
                 }}
               >
                 {day && (                                 //Rendering only if the days are valid > Input form is appended
                   <>
                     {/* Each component should be inside separate divs. Here day is under one, and input works on its own*/}
-                    {<div style={{marginBottom: "5px"}}>{day}</div>}
+                    {/* Wrapping day and weather icon in one div with flexbox so it appears side by side, wheareas weight input will be displayed below */}
+                    {/* Left - Day number */}
+                    {<div 
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center"
+                        }}
+                      >
+                        <div>{day}</div>
+                    {/* Right - Weather icon */}
+                    {(month === currentDate.getMonth() && year === currentDate.getFullYear())   //Added validations to only display weather icon for the current month & year.
+                      && weather[day]?.icon && (                            //Optional chaining. Icon is only rendered if it exists in the backend.
+                        <img 
+                          src={`https://openweathermap.org/img/wn/${weather[day].icon}.png`} 
+                          alt={weather[day].description || "Weather icon"}
+                          title={weather[day].description || "Weather icon"}
+                          style={{ width: "24px", height: "24px", marginLeft: "5px"}}
+                        />
+                      )}
+                    </div>}
+
+                    {/* Weight input (Always take full width)*/}
                     <input type="number"
                       placeholder="kg"
                       value={weights[day] || ""}
                       onChange={(e) => handleWeightChange(day, e.target.value)}
-                      style={{width: "100%", marginTop: "5px"}}
+                      style={{
+                        width: weather[day]?.icon ? "99%" : "100%",   //Shrink the size a bit if weather icon exists (Both currently set to 100)
+                        marginTop: "5px"
+                      }}
                     />
                   </>
                 )}
