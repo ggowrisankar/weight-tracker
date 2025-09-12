@@ -11,15 +11,51 @@ const apiKey = process.env.API_KEY;               //Read API_KEY from env
 
 app.use(cors());                                  //Now the server will be able to run anywhere without having to be inside the local url. (Keeping it open for now)
 
-// Define route. Simple endpoint: /weather?city=London
-app.get("/weather", async(req, res) => {          //Execute the following function whenever https://localhost:3000/weather is ran
-  try {
-    const { city } = req.query;                    //Gets city query from URL. For eg: we need to send "city: London" from frontend so it can be appended into the URL.
-    if(!city) {
-      return res.status(400).json({error: "City is required"});
-    }
+function handleDataTransformation(res, data) {
+    //--Data Transformation-- (To send only required data format to the front end)
+    const today = new Date();
+    const tomorrow = new Date();                //If we typed const tomorrow = new Date().setDate(today.getDate() + 1);, it will only return a timestamp
+    tomorrow.setDate(today.getDate() + 1);      //Here since timestamp is not returned, we are getting the output back in the date object format
 
-    const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`);
+    const formatDate = (d) => d.toISOString().split("T")[0];    //Function to only get the date part
+
+    //Filter out only the data for today and tomorrow
+    const filteredData = data.list.filter(item => {
+      const date = item.dt_txt.split(" ")[0];
+      const time = item.dt_txt.split(" ")[1];
+      return (
+        (date === formatDate(today) || date === formatDate(tomorrow)) && time === "21:00:00"        //Originally need 06:00:00
+      ); 
+    });
+
+    //Transform the data for today and tomorrow. forEach is used since we are mutating the filtered array to return a new object { <day>: {description: <value>, icon: <value} }
+    const transformedData = {};
+    filteredData.forEach(item => {
+      const day = new Date(item.dt_txt).getDate();
+      transformedData[day] = {
+        description: item.weather[0].main,
+        icon: item.weather[0].icon
+      };
+    })
+    res.json(transformedData);
+}
+
+// Define route. Simple endpoint: /weather?city=London
+app.get("/weather", async(req, res) => {                     //Execute the following function whenever https://localhost:3000/weather is ran
+  console.log("Weather request query:", req.query);         //Logs queries
+  try {
+    let url;
+    const { city, lat, lon } = req.query;                    //Gets city query from URL. For eg: we need to send "?city=London" from frontend so it can be appended into the URL.
+    //Adding lat & lon for dynamic fetching of location
+    if (lat && lon) {
+      url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+    } else if (city) {
+      url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`;
+    } else {
+      return res.status(400).json({error: "No location provided" });
+    }
+    
+    const response = await fetch(url);
 
     //Error Handling: [Note: response.status or headers don't require 'await' since its part of the metadata and is handled during fetch('url')]
     if (!response.ok) {
@@ -51,33 +87,8 @@ app.get("/weather", async(req, res) => {          //Execute the following functi
     */
     
     const data = await response.json();
+    handleDataTransformation(res, data);
 
-    //--Data Transformation-- (To send only required data format to the front end)
-    const today = new Date();
-    const tomorrow = new Date();                //If we typed const tomorrow = new Date().setDate(today.getDate() + 1);, it will only return a timestamp
-    tomorrow.setDate(today.getDate() + 1);      //Here since timestamp is not returned, we are getting the output back in the date object format
-
-    const formatDate = (d) => d.toISOString().split("T")[0];    //Function to only get the date part
-
-    //Filter out only the data for today and tomorrow
-    const filteredData = data.list.filter(item => {
-      const date = item.dt_txt.split(" ")[0];
-      const time = item.dt_txt.split(" ")[1];
-      return (
-        (date === formatDate(today) || date === formatDate(tomorrow)) && time === "21:00:00"        //Originally need 06:00:00
-      ); 
-    });
-
-    //Transform the data for today and tomorrow. forEach is used since we are mutating the filtered array to return a new object { <day>: {description: <value>, icon: <value} }
-    const transformedData = {};
-    filteredData.forEach(item => {
-      const day = new Date(item.dt_txt).getDate();
-      transformedData[day] = {
-        description: item.weather[0].main,
-        icon: item.weather[0].icon
-      };
-    })
-    res.json(transformedData);
     /*// Create month/year key like "weather-2025-9"  (Removing since monthKey is handled in frontend)
     const monthKey = `weather-${today.getFullYear()}-${today.getMonth() + 1}`;      // +1 since months are index based
     res.json({ [monthKey]: transformedData });    //Forward valid API response to frontend
