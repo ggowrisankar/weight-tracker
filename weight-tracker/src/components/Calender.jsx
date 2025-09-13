@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import useWeights from "../hooks/useWeights";
+import useWeather from "../hooks/useWeather";
+import { chunkIntoWeeks, calculateWeeklyAverage, calculateMonthlyAverage } from "../utils/calendarUtils";
 
 function Calendar () {
   const[today,setToday] = useState(new Date());
@@ -30,40 +33,10 @@ function Calendar () {
     daysArray.push(null);
   } 
 
-//  const storageKey = `weights-${currentYear}-${currentMonth + 1}`; //month + 1 so Jan=1, Feb=2 ...
-  const storageKey = `weights-${year}-${month + 1}`;
-
-  //Stores weight for each day
-  const[weights, setWeights] = useState(() => {           //State: Store weights per day
-  //  const saved = localStorage.getItem("weights");        //Load data from localstorage for first render
-    const saved = localStorage.getItem(storageKey);
-    return saved ? JSON.parse(saved) : {};
-  });    
-
-  //Load data from localstorage for first render - Code avoided since React Strict mode is enabled
-/*  useEffect(() => {
-    const saved = localStorage.getItem("weights");
-    if (saved) {
-      setWeights(JSON.parse(saved));
-    }
-  }, []);                     //[] - Dependency array to initially render and run only once
-*/
-
-  //Load data when month/year changes
-  useEffect(() => {
-    const saved = localStorage.getItem(storageKey);
-    setWeights(saved ? JSON.parse(saved) : {});
-  }, [storageKey]);
-
-  //Save to localstorage after any updation
-/*  useEffect(() => {
-    localStorage.setItem("weights", JSON.stringify(weights));
-  }, [weights]);              //[weights] - Dependency array to update after every change
-*/
-  useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(weights));
-  }, [weights, storageKey]);     //Both are needed in the dependency array to ensure this runs when either changes. storageKey is added since its dynamic based on year/month and if it changes without a change in weights, the effect would not run unless it's listed. Including both ensures we always write to the correct key in localStorage.
-
+  // --- Custom hooks ---
+  const { weights, handleWeightChange } = useWeights(year, month);     // useWeights hook (weights stored in localStorage)
+  const weather = useWeather(year, month);                             // useWeather hook (weather fetched + cached)
+  
   //Previous & Next Month Navigation
 /* function goToPreviousMonth() {
     if(currentMonth === 0) {
@@ -90,112 +63,9 @@ function Calendar () {
     setToday(new Date(year, month + 1, 1));
   }
 
-  //Handle input change
-/*  const handleWeightChange = (day, value) => {      //Handler to update each weight
-    setWeights((prev) => ({
-      ...prev,
-      [day]:value
-    }))
-  }
-*/
-
-  const handleWeightChange = (day, value) => {
-    setWeights((prev) => {
-      const newWeights = {...prev, [day]:value};
-      localStorage.setItem(storageKey, JSON.stringify(newWeights));
-      return newWeights;
-    });
-  }
-
-  //Converting days array into chunks of weeks
-  const weeks = [];
-  for (let i=0; i < daysArray.length; i += 7 ) {
-    weeks.push(daysArray.slice(i, i + 7));
-  }
-
-  //Calculating Weekly average
-  function calculateWeeklyAverage(week) {
-    const weekWeights = week
-    .filter((day) => day !== null && weights[day])    //Filtering out only valid days with weights entered
-    .map((day) => parseFloat(weights[day]));          //Converting string to num for performing calculations
-
-    return weekWeights.length > 0
-        ? (weekWeights.reduce((sum, val) => sum + val, 0) / weekWeights.length).toFixed(1)
-        : null;  
-  }
+  //Convert into weeks (using utils)
+  const weeks = chunkIntoWeeks(daysArray);
   
-  //Calculating Monthly average
-  function calculateMonthlyAverage() {
-    const monthWeights = daysArray
-      .filter((day) => day !== null && weights[day])
-      .map((day) => parseFloat(weights[day]));
-
-    return monthWeights.length > 0
-      ? (monthWeights.reduce((sum, val) => sum + val, 0) / monthWeights.length).toFixed(1)
-      : null;
-  }
-
-  //Call Weather API to fetch weather details
-  const [weather, setWeather] = useState({});
-  useEffect(() => {
-    const weatherKey = `weather-${year}-${month + 1}`;
-    const savedWeather = localStorage.getItem(weatherKey);
-    //Load cached weather immediately if present
-    if (savedWeather) {
-      setWeather(JSON.parse(savedWeather));
-    }
-    
-    const fetchWeather = async (url) => {      //Async function need to be called separately since react expect useEffect to only return nothing or a cleanup function
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-        setWeather(data);
-        localStorage.setItem(weatherKey, JSON.stringify(data));   //Save/Overwrite the key with fresh data
-        //Note: In localStorage, new values will entirely overwrite/replace the original value of the key. It wont stack-up/append and the data will never be duplicated/repeated.
-      } 
-      catch (err) {
-        console.error("Error fetching weather data: ", err);
-      }
-    };
-    
-    function getCurrentPositionPromise() {
-      return new Promise((resolve, reject) => {               //getCurrentPosition returns undefined. Using a promise allows us to get the value outside the function using await.
-        navigator.geolocation.getCurrentPosition(resolve, reject);
-      });
-    }
-
-    async function fetchWeatherDynamic() {
-      try {
-        //Geolocation API:
-        const pos = await getCurrentPositionPromise();      //await only possible since its wrapped with promise. (only done for better readability instead of nesting)
-        const url = `http://localhost:3000/weather?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`
-        await fetchWeather(url);
-      }
-      catch (geoErr) {
-        console.error("Geolocation failed: ", geoErr);
-        //Geolocation failed > Try IP lookup
-        try {
-          const ipRes = await fetch("https://ipapi.co/json/");
-          const ipData = await ipRes.json();
-          console.log("IP API Response:", ipData);
-          if (ipData && ipData.city) {      //Or use ipData?.city for optional chaining
-            const url = `http://localhost:3000/weather?city=${ipData.city}`;
-            await fetchWeather(url);
-            return;                         //To avoid fallback if lookup succeeds.
-          }
-        }
-        catch (ipErr) {
-          console.error("IP lookup failed: ",ipErr);
-        }
-        //IP lookup also fails > Fallback to default URL
-        const defaultUrl = "http://localhost:3000/weather?city=Vazhuthacaud";    //Default url
-        await fetchWeather(defaultUrl);
-      }
-    }
-  
-    fetchWeatherDynamic();
-  }, []);                                 //Dependency [] to only run once during mount, optionally add [year, month] if they change.
-
   return(
     <div>
       {/* --MONTH + YEAR TITLE WITH NAVIGATION BUTTONS-- */}
@@ -302,7 +172,7 @@ function Calendar () {
                 backgroundColor: "black",
               }}
             >
-              {calculateWeeklyAverage(week)}
+              {calculateWeeklyAverage(week, weights)}
             </div>
           </div>
         ))}
@@ -315,7 +185,7 @@ function Calendar () {
           marginTop: "20px", 
           fontWeight: "bold" 
         }}>
-        Monthly Average: {calculateMonthlyAverage()}
+        Monthly Average: {calculateMonthlyAverage(daysArray, weights)}
       </div>
 
       {/* --CALENDAR GRID-- */}
