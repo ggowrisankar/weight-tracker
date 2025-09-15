@@ -15,7 +15,7 @@ Users can log their weight for each day, view weekly and monthly averages, and s
   - Displays **weekly** and **monthly averages**.
 
 - **Weather Integration**
-  - Weather data displayed with icons for the **current month** only.
+  - Weather data displayed with icons for only **current day and next** .
   - Fetching order:
     1. **Geolocation API** (browser location).
     2. **IP lookup** via `ipapi.co/json`.
@@ -66,8 +66,8 @@ backend/
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/weight-weather-app.git
-cd weight-weather-app
+git clone https://github.com/ggowrisankar/weight-tracker.git
+cd weight-tracker
 ```
 
 ### 2. Install dependencies
@@ -94,8 +94,8 @@ cd weight-weather-app
 Create a `.env` file in the **backend** folder:
 
 ```env
-OPENWEATHER_API_KEY=your_api_key_here
-PORT=3000
+API_KEY = your_api_key_here
+PORT = 3000
 ```
 
 ---
