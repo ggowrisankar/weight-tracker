@@ -6,7 +6,7 @@ export async function getWeather(req, res) {
   try {
     const { city, lat, lon } = req.query;                    //Gets city query from URL. For eg: we need to send "?city=London" from frontend so it can be appended into the URL.
     
-    //Valitdate location
+    //Validate location
     if (!city && !(lat && lon)) {
       return res.status(400).json({error: "No location provided" });
     }

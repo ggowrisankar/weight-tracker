@@ -5,12 +5,12 @@ import cors from "cors";                            //Importing CORS to bypass r
 import weatherRoutes from "./routes/weatherRoutes.js";
 
 const app = express();                            //Our server
-const PORT = process.env.PORT || 3000;            //Using available ports after checking in env.Server will be available at https://localhost:3000
+const PORT = process.env.PORT || 3000;            //Using available ports after checking in env. Server will be available at https://localhost:3000 as default.
 
 app.use(cors());                                  //Now the server will be able to run anywhere without having to be inside the local url. (Keeping it open for now)
 
-//Mount routes
-app.use("/weather", weatherRoutes);
+//Mount routes - prefix all paths inside weatherRoutes with /weather
+app.use("/weather", weatherRoutes);               //For any request starting with /weather, use the router imported from weatherRoutes.js
 
 //Starts the server
 app.listen(PORT, () =>

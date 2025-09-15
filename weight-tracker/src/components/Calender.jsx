@@ -34,8 +34,8 @@ function Calendar () {
   } 
 
   // --- Custom hooks ---
-  const { weights, handleWeightChange } = useWeights(year, month);     // useWeights hook (weights stored in localStorage)
-  const weather = useWeather(year, month);                             // useWeather hook (weather fetched + cached)
+  const { weights, handleWeightChange } = useWeights(year, month);     //useWeights hook (weights stored in localStorage)
+  const weather = useWeather(year, month);                             //useWeather hook (weather fetched + cached)
   
   //Previous & Next Month Navigation
 /* function goToPreviousMonth() {
@@ -203,7 +203,7 @@ function Calendar () {
             style={{
               border: "1px solid gray",
               padding: "10px",
-              backgroundColor: day ? "black" : "#f5f5f523", // Gray background for empty slots
+              backgroundColor: day ? "black" : "#f5f5f523", //Gray background for empty slots
               color: "white"
             }}
           >
