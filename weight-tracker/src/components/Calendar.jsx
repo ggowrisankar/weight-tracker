@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import useWeights from "../hooks/useWeights";
 import useWeather from "../hooks/useWeather";
 import { chunkIntoWeeks, calculateWeeklyAverage, calculateMonthlyAverage, hasMonthEnded } from "../utils/calendarUtils";
+import "../styles/Calendar.css";
 
 function Calendar () {
   const[today,setToday] = useState(new Date());
@@ -71,7 +72,7 @@ function Calendar () {
   return(
     <div>
       {/* --MONTH + YEAR TITLE WITH NAVIGATION BUTTONS-- */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+      <div className="calendar-header">
         <button onClick={goToPreviousMonth}>Prev</button>
 
         {/*<h2>{monthName[currentMonth]}, {currentYear}</h2>*/}
@@ -83,14 +84,7 @@ function Calendar () {
       </div>
       
       {/* --WEEKDAY HEADERS-- */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(8, 1fr)",            //7 days + 1 avg column
-        marginBottom: "10px",
-        fontWeight: "bold",
-        textAlign: "center"
-        }}
-      >
+      <div className="weekdays">
         {weekDays.map((day) => (
           <div key={day}>    
             {day}
@@ -103,40 +97,18 @@ function Calendar () {
       <div>
         {weeks.map((week, wIndex) => (                    //Rendering week chunks one by one
           <div
-            key={wIndex}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(8, 1fr)",     //7 days + 1 avg column
-              textAlign: "center",
-              gap: "5px",
-              marginBottom: "10px"
-            }}
-          >
+            key={wIndex} className="week-row">
             {week.map((day, dIndex) => (                  //Rendering each day inside each week chunk. Invalid days are grayed out
               <div
                 key={`${year}-${month+1}-${day || `empty-${dIndex}`}`}
-                style={{
-                  border: "1px solid gray",
-                  padding: "10px",
-                  backgroundColor: day ? "black" : "#f5f5f523",
-                  color: "white",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center"
-                }}
+                className={`day-cell ${day ? "" : "invalid"}`}
               >
                 {day && (                                 //Rendering only if the days are valid > Input form is appended
                   <>
                     {/* Each component should be inside separate divs. Here day is under one, and input works on its own*/}
                     {/* Wrapping day and weather icon in one div with flexbox so it appears side by side, wheareas weight input will be displayed below */}
                     {/* Left - Day number */}
-                    {<div 
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center"
-                        }}
-                      >
+                    <div className="day-header">
                         <div>{day}</div>
                     {/* Right - Weather icon */}
                     {(month === currentDate.getMonth() && year === currentDate.getFullYear())   //Added validations to only display weather icon for the current month & year.
@@ -148,32 +120,19 @@ function Calendar () {
                           style={{ width: "24px", height: "24px", marginLeft: "5px"}}
                         />
                       )}
-                    </div>}
+                    </div>
 
                     {/* Weight input (Always take full width)*/}
                     <input type="number"
                       placeholder="kg"
                       value={weights[day] || ""}
                       onChange={(e) => handleWeightChange(day, e.target.value)}
-                      style={{
-                        width: weather[day]?.icon ? "99%" : "100%",   //Shrink the size a bit if weather icon exists (Both currently set to 100)
-                        marginTop: "5px"
-                      }}
                     />
                   </>
                 )}
               </div>
             ))}
-            <div                                          //Weekly average box
-              style={{
-                display: "grid",
-                placeItems: "center",
-                border: "1px solid gray",
-                padding: "10px",
-                fontWeight: "bold",
-                backgroundColor: "black",
-              }}
-            >
+            <div className="weekly-average">
               {calculateWeeklyAverage(week, weights)}
             </div>
           </div>
@@ -181,12 +140,7 @@ function Calendar () {
       </div>
 
       {/* --MONTHLY AVERAGE FIELD-- */}
-      <div
-        style={{ 
-          textAlign: "center", 
-          marginTop: "20px", 
-          fontWeight: "bold" 
-        }}>
+      <div className="monthly-average">
           {
             (monthlyAverage && (hasMonthEnded(currentDate, month, year)))
             ? `Monthly Average: ${monthlyAverage}`
@@ -227,7 +181,7 @@ function Calendar () {
           </div>
         ))}
       </div> 
-   */}
+      */}
       {/* Debug line to check useStates are working correctly */}
       {/*<pre>{JSON.stringify(weights, null, 2)}</pre>*/} 
     </div>
