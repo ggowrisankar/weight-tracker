@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import useWeights from "../hooks/useWeights";
 import useWeather from "../hooks/useWeather";
-import { chunkIntoWeeks, calculateWeeklyAverage, calculateMonthlyAverage } from "../utils/calendarUtils";
+import { chunkIntoWeeks, calculateWeeklyAverage, calculateMonthlyAverage, hasMonthEnded } from "../utils/calendarUtils";
 
 function Calendar () {
   const[today,setToday] = useState(new Date());
@@ -65,6 +65,8 @@ function Calendar () {
 
   //Convert into weeks (using utils)
   const weeks = chunkIntoWeeks(daysArray);
+
+  const monthlyAverage = calculateMonthlyAverage(daysArray, weights);
   
   return(
     <div>
@@ -185,7 +187,11 @@ function Calendar () {
           marginTop: "20px", 
           fontWeight: "bold" 
         }}>
-        Monthly Average: {calculateMonthlyAverage(daysArray, weights)}
+          {
+            (monthlyAverage && (hasMonthEnded(currentDate, month, year)))
+            ? `Monthly Average: ${monthlyAverage}`
+            : null
+          }
       </div>
 
       {/* --CALENDAR GRID-- */}

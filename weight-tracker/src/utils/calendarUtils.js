@@ -30,3 +30,9 @@ export function calculateMonthlyAverage(daysArray, weights) {
     ? (monthWeights.reduce((sum, val) => sum + val, 0) / monthWeights.length).toFixed(1)
     : null;
 }
+
+//Checking if the month has ended
+export function hasMonthEnded(currentDate, month, year) {
+  return year < currentDate.getFullYear() ||
+    (year === currentDate.getFullYear() && month < currentDate.getMonth())
+}
