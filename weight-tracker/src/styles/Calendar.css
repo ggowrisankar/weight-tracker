@@ -1,9 +1,8 @@
 /* Month + Year Navigation */
 .calendar-header {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  flex-direction: row !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
 }
 
@@ -12,7 +11,7 @@
   border: 1px solid transparent;
   padding: 0.5em 1em;
   background-color: #1a1a1a;
-  color: white;
+  color: white(112, 112, 183);
   cursor: pointer;
 }
 

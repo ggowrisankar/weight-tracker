@@ -98,10 +98,10 @@ function Calendar () {
         {weeks.map((week, wIndex) => (                    //Rendering week chunks one by one
           <div
             key={wIndex} className="week-row">
-            {week.map((day, dIndex) => (                  //Rendering each day inside each week chunk. Invalid days are grayed out
+            {week.map((day, dIndex) => (                  //Rendering each day inside each week chunk. Invalid days are grayed out.
               <div
                 key={`${year}-${month+1}-${day || `empty-${dIndex}`}`}
-                className={`day-cell ${day ? "" : "invalid"}`}
+                className={`day-cell ${day ? "" : "invalid"}`} //Template literal - day-cell is appended with invalid if day is falsy.
               >
                 {day && (                                 //Rendering only if the days are valid > Input form is appended
                   <>
@@ -117,17 +117,25 @@ function Calendar () {
                           src={`https://openweathermap.org/img/wn/${weather[day].icon}.png`} 
                           alt={weather[day].description || "Weather icon"}
                           title={weather[day].description || "Weather icon"}
-                          style={{ width: "24px", height: "24px", marginLeft: "5px"}}
+                          className="weather-icon"
                         />
                       )}
                     </div>
 
                     {/* Weight input (Always take full width)*/}
-                    <input type="number"
+                    {/* Only currentDate can be edited. Rest are disabled */}
+                    {(day === currentDate.getDate() && month === currentDate.getMonth() && year === currentDate.getFullYear()) ? 
+                      <input type="number"
+                        placeholder="kg"
+                        value={weights[day] || ""}
+                        onChange={(e) => handleWeightChange(day, e.target.value)}
+                      /> : 
+                      <input type="number" 
                       placeholder="kg"
                       value={weights[day] || ""}
-                      onChange={(e) => handleWeightChange(day, e.target.value)}
-                    />
+                      disabled 
+                      />
+                    }
                   </>
                 )}
               </div>
