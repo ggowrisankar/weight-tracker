@@ -101,7 +101,10 @@ function Calendar () {
             {week.map((day, dIndex) => (                  //Rendering each day inside each week chunk. Invalid days are grayed out.
               <div
                 key={`${year}-${month+1}-${day || `empty-${dIndex}`}`}
-                className={`day-cell ${day ? "" : "invalid"}`} //Template literal - day-cell is appended with invalid if day is falsy.
+                //Template literal - day-cell is appended with invalid if day is falsy / Appended with today-highlight for current day.
+                className={`day-cell
+                  ${day ? "" : "invalid"}
+                  ${(day===currentDate.getDate() && month === currentDate.getMonth() && year === currentDate.getFullYear()) ? "today-highlight" : "" }`}
               >
                 {day && (                                 //Rendering only if the days are valid > Input form is appended
                   <>

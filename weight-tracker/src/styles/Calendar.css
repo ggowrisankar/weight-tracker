@@ -52,6 +52,11 @@
   color: #999;
 }
 
+.day-cell.today-highlight {
+  border: 2px solid rgb(1, 1, 37); /* highlight border */
+  background-color: rgba(92, 119, 169, 0.715); /* light blue background */
+}
+
 /* Day + weather container */
 .day-header {
   display: flex;
