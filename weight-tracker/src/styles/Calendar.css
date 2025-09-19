@@ -53,8 +53,16 @@
 }
 
 .day-cell.today-highlight {
-  border: 2px solid rgb(1, 1, 37); /* highlight border */
-  background-color: rgba(92, 119, 169, 0.715); /* light blue background */
+  border: 2px solid rgb(1, 1, 37);
+  background-color: rgba(92, 119, 169, 0.715);
+}
+
+.filled-day {
+  background-color: #101724;
+}
+
+.empty-day {
+  background-color: black;
 }
 
 /* Day + weather container */
@@ -99,10 +107,6 @@
 }
 
 /* Error validation cell */
-.error-text {
-  color: red;
-}
-
 .input.invalid {
   border-color: red;
   opacity: 1;
@@ -110,7 +114,7 @@
 }
 
 .input.invalid::placeholder {
-  color: red;
+  color: rgb(193, 123, 123);
   opacity: 1;
 }
 

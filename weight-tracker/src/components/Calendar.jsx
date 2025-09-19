@@ -104,7 +104,9 @@ function Calendar () {
                 //Template literal - day-cell is appended with invalid if day is falsy / Appended with today-highlight for current day.
                 className={`day-cell
                   ${day ? "" : "invalid"}
-                  ${(day===currentDate.getDate() && month === currentDate.getMonth() && year === currentDate.getFullYear()) ? "today-highlight" : "" }`}
+                  ${(day===currentDate.getDate() && month === currentDate.getMonth() && year === currentDate.getFullYear()) ? "today-highlight" : ""}
+                  ${weights[day] ? "filled-day" : "empty-day"}
+                `}
               >
                 {day && (                                 //Rendering only if the days are valid > Input form is appended
                   <>
