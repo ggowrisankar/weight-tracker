@@ -66,6 +66,7 @@
   margin-top: 5px;
   padding: 5px;
   box-sizing: border-box;
+  border: 1px solid #ccc;
 }
 
 /* Weekly Average Box */
@@ -95,4 +96,8 @@
 /* Error validation cell */
 .error-text {
   color: red;
+}
+
+.input.invalid {
+  border-color: red;
 }

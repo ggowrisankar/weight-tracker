@@ -127,12 +127,15 @@ function Calendar () {
                     {( month === currentDate.getMonth() && year === currentDate.getFullYear()) ?
                       <div>
                         <input type="number"
-                          placeholder="kg"
                           value={weights[day] || ""}
+                          placeholder={
+                            errors[day] ? errors[day] : "kg"
+                          }
+                          className={`input ${errors[day] ? "invalid" : ""}`}
                           onChange={(e) => handleWeightChange(day, e.target.value)}
                           onBlur={(e) => handleInputValidation(day, e.target.value)}
                         />
-                        {errors[day] && <span className="error-text">{errors[day]}</span>}
+                        {/*{errors[day] && <span className="error-text">{errors[day]}</span>}*/}
                       </div> : 
                       <input type="number" 
                       placeholder="kg"

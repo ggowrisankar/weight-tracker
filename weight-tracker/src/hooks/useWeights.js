@@ -88,7 +88,7 @@ export default function useWeights(year, month) {
     else {
       setErrors((prev) =>({
         ...prev,                                                              //Keep other/existing errors untouched
-        [day]: "Enter valid values between 30-300kgs"
+        [day]: "Only 30-300kgs"
       }));
     }
   }
