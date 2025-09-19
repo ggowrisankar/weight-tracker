@@ -100,4 +100,54 @@
 
 .input.invalid {
   border-color: red;
+  opacity: 1;
+  transition: 0.5s;
+}
+
+.input.invalid::placeholder {
+  color: red;
+  opacity: 1;
+}
+
+.tooltip-wrapper {                /* anchor container */
+  position: relative;             /* make this element the "anchor" for the absolutely positioned tooltip */
+  display: inline-block;          /* keep input + tooltip sized only around content */
+}
+
+.tooltip {                        /* hidden box that appears above input */
+  visibility: hidden;             /* hidden by default */
+  background-color: red;        /* tooltip background */
+  color: white;                 /* text color */
+  text-align: center;             /* center the text */
+  border-radius: 4px;             /* rounded corners */
+  padding: 4px 8px;               /* spacing inside tooltip */
+  
+  position: absolute;             /* position relative to .tooltip-wrapper */
+  bottom: 125%;                   /* move it above the input (125% of input height) */
+  left: 50%;                      /* horizontally center */
+  transform: translateX(-50%);    /* adjust back to true center */
+  
+  white-space: nowrap;            /* prevent tooltip text from breaking into multiple lines */
+  font-size: 12px;                /* smaller text for subtle look */
+  z-index: 10;                    /* ensure it shows on top of other elements */
+  
+  opacity: 0;                     /* start invisible */
+  transition: opacity 0.3s;       /* fade-in effect */
+}
+
+.tooltip::after {                 /* small arrow pointing to input */
+  content: "";                    /* required for pseudo-element */
+  position: absolute;
+  top: 100%;                      /* place the arrow under the tooltip */
+  left: 50%;                      /* center arrow horizontally */
+  margin-left: -5px;              /* offset half the arrow width */
+  
+  border-width: 5px;              /* size of the arrow */
+  border-style: solid;
+  border-color: red transparent transparent transparent; /* arrow is red and points down */
+}
+
+.tooltip-wrapper.show .tooltip {  /* conditionally reveals tooltip */
+  visibility: visible;            /* make tooltip visible when parent has .show */
+  opacity: 1;                     /* fade-in */
 }

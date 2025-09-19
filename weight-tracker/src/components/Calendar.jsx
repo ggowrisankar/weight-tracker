@@ -124,8 +124,8 @@ function Calendar () {
 
                     {/* Weight input (Always take full width)*/}
                     {/* Only currentDate can be edited. Rest are disabled */}
-                    {( month === currentDate.getMonth() && year === currentDate.getFullYear()) ?
-                      <div>
+                    {(day === currentDate.getDate() && month === currentDate.getMonth() && year === currentDate.getFullYear()) ?
+                      <div className={`tooltip-wrapper ${errors[day] ? "show" : ""}`}>
                         <input type="number"
                           value={weights[day] || ""}
                           placeholder={
@@ -135,7 +135,7 @@ function Calendar () {
                           onChange={(e) => handleWeightChange(day, e.target.value)}
                           onBlur={(e) => handleInputValidation(day, e.target.value)}
                         />
-                        {/*{errors[day] && <span className="error-text">{errors[day]}</span>}*/}
+                        <div className="tooltip">Invalid weight</div>
                       </div> : 
                       <input type="number" 
                       placeholder="kg"
