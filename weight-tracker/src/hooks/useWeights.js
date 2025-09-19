@@ -50,31 +50,23 @@ export default function useWeights(year, month) {
   const [errors, setErrors] = useState({});           //Errors are stored for each day. Should always be at the top otherwise it'll be empty always due to re-renders.
 
   const handleWeightChange = (day, value) => {
-
     //Always update weights first (allow empty/partial input), then validate, so typing and backspacing aren’t blocked by validation.
     setWeights((prev) => {
-        const newWeights = {...prev, [day]: value};                           //Update only this day's weight
+        const newWeights = {...prev, [day]: value };                           //Update only this day's weight
         localStorage.setItem(storageKey, JSON.stringify(newWeights));         //Persist
         return newWeights;                                                    //New state
       });
+  };
 
-    //Case 1: Handle empty input (via backspacing)
-    if (value === "") {
-      setErrors((prev) => {
-        const {[day]: _, ...rest } = prev;
-        return rest;
-      });
-      return;
-    }
-
-    //Case 2: Valid weight (between 30–300 kg):
+  const handleInputValidation = (day, value) => {
     const inputNumericValue = parseFloat(value);
-    if (!isNaN(inputNumericValue) && inputNumericValue >= 30 && inputNumericValue <= 300) {                
+    //Case 1: Handle empty input (via backspacing) & Valid weight range (between 30–300 kg):
+    if ((value === "") || (!isNaN(inputNumericValue) && inputNumericValue >= 30 && inputNumericValue <= 300)) {
       //Remove any previous error for this day (if it exists) from the `errors` object
       setErrors((prev) => {
-        const { [day]: _, ...rest } = prev;                                   //Destructure out current day's error (_ contains value of [day] but we don't need it - syntax)
-        return rest;                                                          //Return remaining errors (effectively removing today's error) & becomes new state
-        /* What's happening inside destructure:
+        const {[day]: _, ...rest } = prev;                                   //Destructure out current day's error (_ contains value of [day] but we don't need it - syntax)
+        return rest;                                                         //Return remaining errors (effectively removing today's error) & becomes new state
+       /* What's happening inside destructure:
           [day]: _ >> picks out the key we want to remove (we ignore its value with _).
           ...rest >> collects all remaining keys/values into a new object.
           return rest >> new object without that day’s key.
@@ -92,15 +84,14 @@ export default function useWeights(year, month) {
         */
       });
     }
-    //Case 3: Invalid weight — add/update error message for this day:
+    //Case 2: Invalid weight — add/update error message for this day:
     else {
       setErrors((prev) =>({
         ...prev,                                                              //Keep other/existing errors untouched
         [day]: "Enter valid values between 30-300kgs"
       }));
-      return;
     }
-  };
+  }
 
-  return { weights, handleWeightChange, errors };
+  return { weights, handleWeightChange, errors, handleInputValidation };
 }

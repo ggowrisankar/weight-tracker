@@ -35,7 +35,7 @@ function Calendar () {
   } 
 
   // --- Custom hooks ---
-  const { weights, handleWeightChange, errors } = useWeights(year, month);     //useWeights hook (weights stored in localStorage)
+  const { weights, handleWeightChange, errors, handleInputValidation } = useWeights(year, month);     //useWeights hook (weights stored in localStorage)
   const weather = useWeather(year, month);                             //useWeather hook (weather fetched + cached)
   
   //Previous & Next Month Navigation
@@ -130,6 +130,7 @@ function Calendar () {
                           placeholder="kg"
                           value={weights[day] || ""}
                           onChange={(e) => handleWeightChange(day, e.target.value)}
+                          onBlur={(e) => handleInputValidation(day, e.target.value)}
                         />
                         {errors[day] && <span className="error-text">{errors[day]}</span>}
                       </div> : 
