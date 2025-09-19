@@ -91,3 +91,8 @@
   height: 24px;
   margin-left: 5px;
 }
+
+/* Error validation cell */
+.error-text {
+  color: red;
+}
