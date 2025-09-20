@@ -1,11 +1,16 @@
-.toggle-header {
+.toggle-button {
   display: flex;
   justify-content: end;
 }
 
-.toggle-header button {
+.settings-btn {
   padding: 4px;
   border-radius: 10px;
+}
+
+.settings-btn.active {
+  background-color: rgb(66, 86, 153);
+  /*transform: scale(1.2);  /* make it pop */
 }
 
 /* Month + Year Navigation */

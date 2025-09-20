@@ -75,10 +75,11 @@ function Calendar () {
   return(
     <div>
       {/* --TOGGLE BUTTON- */}
-      <div className="toggle-header">
+      <div className="toggle-button">
         <button 
-          onClick={() => setFreeEditMode(!freeEditMode)}
+          onClick={() => setFreeEditMode(prev => !prev)}    //Using prev is the best practice always, so quick rendering may not affect incorrect values.
           title="Toggle Edit Mode"
+          className= {`settings-btn ${freeEditMode ? "active" : ""}`}
         >
           ⚙️
         </button>
