@@ -1,3 +1,13 @@
+.toggle-header {
+  display: flex;
+  justify-content: end;
+}
+
+.toggle-header button {
+  padding: 4px;
+  border-radius: 10px;
+}
+
 /* Month + Year Navigation */
 .calendar-header {
   display: flex;

@@ -68,19 +68,32 @@ function Calendar () {
   const weeks = chunkIntoWeeks(daysArray);
 
   const monthlyAverage = calculateMonthlyAverage(daysArray, weights);
+
+  //Toggle icon for editing all days
+  const [freeEditMode, setFreeEditMode] = useState(false);
   
   return(
     <div>
+      {/* --TOGGLE BUTTON- */}
+      <div className="toggle-header">
+        <button 
+          onClick={() => setFreeEditMode(!freeEditMode)}
+          title="Toggle Edit Mode"
+        >
+          ⚙️
+        </button>
+      </div>
+
       {/* --MONTH + YEAR TITLE WITH NAVIGATION BUTTONS-- */}
       <div className="calendar-header">
-        <button onClick={goToPreviousMonth}>Prev</button>
+        <button onClick={goToPreviousMonth} title="Previous">←</button>
 
         {/*<h2>{monthName[currentMonth]}, {currentYear}</h2>*/}
         <h2>{monthName[month]}, {year}</h2>
         {/*<h2>{new Date(currentYear, currentMonth).toLocaleString("default", { month: "long" })} {currentYear}</h2>*/}
         {/*<h2>{today.toLocaleString("default", {month: "long"})} {year}</h2>*/}  {/* Uses system local settings */}
 
-        <button onClick={goToNextMonth}>Next</button>
+        <button onClick={goToNextMonth} title="Next">→</button>
       </div>
       
       {/* --WEEKDAY HEADERS-- */}
@@ -129,7 +142,6 @@ function Calendar () {
 
                     {/* Weight input (Always take full width)*/}
                     {/* Only currentDate can be edited. Rest are disabled */}
-                    {(day === currentDate.getDate() && month === currentDate.getMonth() && year === currentDate.getFullYear()) ?
                       <div className={`tooltip-wrapper ${errors[day] ? "show" : ""}`}>
                         <input type="number"
                           value={weights[day] || ""}
@@ -139,15 +151,10 @@ function Calendar () {
                           className={`input ${errors[day] ? "invalid" : ""}`}
                           onChange={(e) => handleWeightChange(day, e.target.value)}
                           onBlur={(e) => handleInputValidation(day, e.target.value)}
+                          disabled={!freeEditMode && (day != currentDate.getDate() || month != currentDate.getMonth() || year != currentDate.getFullYear())}
                         />
                         <div className="tooltip">Invalid weight</div>
-                      </div> : 
-                      <input type="number" 
-                      placeholder="kg"
-                      value={weights[day] || ""}
-                      disabled 
-                      />
-                    }
+                      </div>  
                   </>
                 )}
               </div>
