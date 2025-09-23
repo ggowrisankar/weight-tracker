@@ -36,7 +36,8 @@ function Calendar () {
 
   // --- Custom hooks ---
   const { weights, handleWeightChange, errors, handleInputValidation } = useWeights(year, month);     //useWeights hook (weights stored in localStorage)
-  const weather = useWeather(year, month);                             //useWeather hook (weather fetched + cached)
+  const [toggleWeather, setToggleWeather] = useState(false);                          //Weather icon is only displayed if toggled
+  const weather = useWeather(year, month, toggleWeather);                             //useWeather hook (weather fetched + cached)
   
   //Previous & Next Month Navigation
 /* function goToPreviousMonth() {
@@ -76,6 +77,17 @@ function Calendar () {
     <div>
       {/* --TOGGLE BUTTON- */}
       <div className="toggle-button">
+        <button
+          onClick={() => {
+            setToggleWeather(prev => !prev)
+            //const weather = useWeather(year, month);  //Invalid Hook Call. Hooks shouldn't be called conditionally or in a callback. It should be initialized first.
+          }}
+          title="Toggle Weather Mode"
+          className= {`weather-btn ${toggleWeather ? "active" : ""}`}
+        >
+          🌤
+        </button>
+
         <button 
           onClick={() => setFreeEditMode(prev => !prev)}    //Using prev is the best practice always, so quick rendering may not affect incorrect values.
           title="Toggle Edit Mode"
@@ -130,7 +142,8 @@ function Calendar () {
                     <div className="day-header">
                         <div>{day}</div>
                     {/* Right - Weather icon */}
-                    {(month === currentDate.getMonth() && year === currentDate.getFullYear())   //Added validations to only display weather icon for the current month & year.
+                    { toggleWeather &&
+                      (month === currentDate.getMonth() && year === currentDate.getFullYear())   //Added validations to only display weather icon for the current month & year.
                       && weather[day]?.icon && (                            //Optional chaining. Icon is only rendered if it exists in the backend.
                         <img 
                           src={`https://openweathermap.org/img/wn/${weather[day].icon}.png`} 
