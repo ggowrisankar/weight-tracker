@@ -1,7 +1,7 @@
 // ---- Utility functions for weather caching ----
 
 //Validate cache timestamp (default expiry = 6 hours
-const isCacheValid = (timestamp, expiryMs = 6 * 60 * 60 * 1000) =>
+const isCacheValid = (timestamp, expiryMs = 6 * 60 * 60 * 1000) =>                    //expiryMs is an optional parameter since a default value is assigned.
   Date.now() - timestamp < expiryMs;
 
 //Get cached weather data safely
@@ -27,7 +27,8 @@ export const getCachedWeather = (cacheKey) => {
   }
 }
 
-export const fetchWeather = async (url, cacheKey, setWeather) => {      //Async function need to be called separately since react expect useEffect to only return nothing or a cleanup function
+//Async function need to be called separately since react expect useEffect to only return nothing or a cleanup function
+export const fetchWeather = async (url, cacheKey, setWeather) => {
   try {
     const response = await fetch(url);
     const data = await response.json();

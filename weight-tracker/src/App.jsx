@@ -5,11 +5,10 @@ import './App.css'
 import Calendar from './components/Calendar'
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
     <div>
-      <h2>Weight Tracker</h2>
+      {/*<h2>Weight Tracker</h2>*/}
       <Calendar />
     </div>
   );

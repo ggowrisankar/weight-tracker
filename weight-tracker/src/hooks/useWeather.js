@@ -44,6 +44,7 @@ export default function useWeather(year, month, toggleWeather) {
           console.log("IP API Response:", ipData);
 
           if (ipData && ipData.city) {      //Or use ipData?.city for optional chaining
+
             cacheKey = `weather-${ipData.city}`;
             const cachedData = getCachedWeather(cacheKey);
             if (cachedData) {
@@ -62,6 +63,7 @@ export default function useWeather(year, month, toggleWeather) {
         }
         //IP lookup also fails > Fallback to default URL
         const defaultCity = "Thiruvananthapuram";
+        
         cacheKey = `weather-${defaultCity}`;
         const cachedData = getCachedWeather(cacheKey);
         if(cachedData) {
