@@ -35,7 +35,7 @@ function Calendar () {
   } 
 
   // --- Custom hooks ---
-  const { weights, handleWeightChange, errors, handleInputValidation } = useWeights(year, month);     //useWeights hook (weights stored in localStorage)
+  const { weights, handleWeightChange, errors, draft, handleInputValidation } = useWeights(year, month);     //useWeights hook (weights stored in localStorage)
   const [toggleWeather, setToggleWeather] = useState(false);                          //Weather icon is only displayed if toggled
   const weather = useWeather(year, month, toggleWeather);                             //useWeather hook (weather fetched + cached)
   
@@ -93,20 +93,20 @@ function Calendar () {
           title="Toggle Edit Mode"
           className= {`settings-btn ${freeEditMode ? "active" : ""}`}
         >
-          ⚙️
+          ✎
         </button>
       </div>
 
       {/* --MONTH + YEAR TITLE WITH NAVIGATION BUTTONS-- */}
       <div className="calendar-header">
-        <button onClick={goToPreviousMonth} title="Previous">←</button>
+        <button onClick={goToPreviousMonth} title="Previous">🡨</button>
 
         {/*<h2>{monthName[currentMonth]}, {currentYear}</h2>*/}
         <h2>{monthName[month]}, {year}</h2>
         {/*<h2>{new Date(currentYear, currentMonth).toLocaleString("default", { month: "long" })} {currentYear}</h2>*/}
         {/*<h2>{today.toLocaleString("default", {month: "long"})} {year}</h2>*/}  {/* Uses system local settings */}
 
-        <button onClick={goToNextMonth} title="Next">→</button>
+        <button onClick={goToNextMonth} title="Next">🡪</button>
       </div>
       
       {/* --WEEKDAY HEADERS-- */}
@@ -158,10 +158,8 @@ function Calendar () {
                     {/* Only currentDate can be edited. Rest are disabled */}
                       <div className={`tooltip-wrapper ${errors[day] ? "show" : ""}`}>
                         <input type="number"
-                          value={weights[day] || ""}
-                          placeholder={
-                            errors[day] ? errors[day] : "kg"
-                          }
+                          value={draft[day] || ""}
+                          placeholder={errors[day] ? errors[day] : "kg"}
                           className={`input ${errors[day] ? "invalid" : ""}`}
                           onChange={(e) => handleWeightChange(day, e.target.value)}
                           onBlur={(e) => handleInputValidation(day, e.target.value)}

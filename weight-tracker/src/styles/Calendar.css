@@ -1,10 +1,11 @@
 .toggle-button {
   display: flex;
-  justify-content: end;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .settings-btn, .weather-btn {
-  padding: 4px;
+  padding: 8px;
   border-radius: 10px;
 }
 

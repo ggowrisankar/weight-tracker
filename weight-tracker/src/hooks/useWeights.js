@@ -49,22 +49,30 @@ export default function useWeights(year, month) {
   //--Input Error Validation logic (along with Input Handling)--
   const [errors, setErrors] = useState({});           //Errors are stored for each day. Should always be at the top otherwise it'll be empty always due to re-renders.
 
+  const [draft, setDraft] = useState(weights);        //Adding a draft state to temporarily store invalid values, so other calculations aren't affected (like avg).
+        console.log(draft);
   const handleWeightChange = (day, value) => {
+    /*Using drafts to temporarily store the state values
     //Always update weights first (allow empty/partial input), then validate, so typing and backspacing aren’t blocked by validation.
     setWeights((prev) => {
         const newWeights = {...prev, [day]: value };                           //Update only this day's weight
         localStorage.setItem(storageKey, JSON.stringify(newWeights));         //Persist
         return newWeights;                                                    //New state
       });
+    */
+      setDraft((prev) => ({
+        ...prev,
+        [day]: value
+      }));
   };
 
   const handleInputValidation = (day, value) => {
     const inputNumericValue = parseFloat(value);
     //Case 1: Handle empty input (via backspacing) & Valid weight range (between 30–300 kg):
-    if ((value === "") || (!isNaN(inputNumericValue) && inputNumericValue >= 30 && inputNumericValue <= 300)) {
+    if (value === "" || (!isNaN(inputNumericValue) && inputNumericValue >= 30 && inputNumericValue <= 300)) {
       //Remove any previous error for this day (if it exists) from the `errors` object
       setErrors((prev) => {
-        const {[day]: _, ...rest } = prev;                                   //Destructure out current day's error (_ contains value of [day] but we don't need it - syntax)
+        const { [day]: _, ...rest } = prev;                                  //Destructure out current day's error (_ contains value of [day] but we don't need it - syntax)
         return rest;                                                         //Return remaining errors (effectively removing today's error) & becomes new state
        /* What's happening inside destructure:
           [day]: _ >> picks out the key we want to remove (we ignore its value with _).
@@ -83,15 +91,31 @@ export default function useWeights(year, month) {
           Always create and return a new object/array to trigger re-render.
         */
       });
+          
+      if (value === "") {
+        setWeights((prev) => {
+          const { [day]: _, ...rest } = prev;                                  //Removes the day key with empty value      
+          localStorage.setItem(storageKey, JSON.stringify(rest));
+          return rest;
+        });
+      }
+      else { 
+        //Store the valid values in the weights state
+        setWeights((prev) => {
+          const newWeights = {...prev, [day]: value };                          //Update only this day's weight
+          localStorage.setItem(storageKey, JSON.stringify(newWeights));         //Persist
+          return newWeights;                                                    //New state
+        });
+      }
     }
     //Case 2: Invalid weight — add/update error message for this day:
     else {
-      setErrors((prev) =>({
+      setErrors((prev) => ({
         ...prev,                                                              //Keep other/existing errors untouched
         [day]: "Only 30-300kgs"
       }));
     }
   }
 
-  return { weights, handleWeightChange, errors, handleInputValidation };
+  return { weights, handleWeightChange, errors, draft, handleInputValidation };
 }
