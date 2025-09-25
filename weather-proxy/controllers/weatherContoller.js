@@ -1,6 +1,13 @@
 import { fetchWeatherData, transformWeatherData } from "../services/weatherService.js";
 import weatherCache from "../models/weatherCache.js";
 
+/*//To check the indexes of the schema
+(async () => {
+  const indexes = await weatherCache.collection.indexes();
+  console.log("Indexes:", indexes);
+})();
+*/
+
 //Controller: Handles incoming request and sends back transformed response
 export async function getWeather(req, res) {
   console.log("Weather request query:", req.query);         //Logs queries

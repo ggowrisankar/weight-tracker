@@ -5,7 +5,7 @@ const weatherCacheSchema = new mongoose.Schema({
   //Tip: Use index on fields used for search/filter frequently to query faster
   city: { type: String, required: true, lowercase: true, index:true },
   data: { type: mongoose.Schema.Types.Mixed, required:true },
-  timestamp: { type: Date, default: Date.now() }
+  timestamp: { type: Date, default: Date.now }
 });
 
 //TTL (Time to Live) index based on the timestamp field, to auto delete after the specified time, to ensure cache doesn't grow big.
