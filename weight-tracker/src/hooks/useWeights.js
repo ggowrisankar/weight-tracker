@@ -58,7 +58,7 @@ export default function useWeights(year, month) {
   //Adding a draft state to temporarily store invalid values, so other calculations aren't affected (like avg).
   const [draft, setDraft] = useState({});        
   
-  //Keep `draft` in sync with `weights` whenever the month/year changes. This ensures that weight inputs reflect the correct data for the selected month.
+  //Keep draft in sync with weights whenever the month/year changes. This ensures that weight inputs reflect the correct data for the selected month.
   useEffect(() => {
     setDraft(weights);
   }, [weights]);

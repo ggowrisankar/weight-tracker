@@ -77,6 +77,14 @@ function Calendar () {
     <div>
       {/* --TOGGLE BUTTON- */}
       <div className="toggle-button">
+        <button 
+          onClick={() => setFreeEditMode(prev => !prev)}    //Using prev is the best practice always, so quick rendering may not affect incorrect values.
+          title="Toggle Edit Mode"
+          className= {`settings-btn ${freeEditMode ? "active" : ""}`}
+        >
+          ✎
+        </button>
+        
         <button
           onClick={() => {
             setToggleWeather(prev => !prev)
@@ -86,14 +94,6 @@ function Calendar () {
           className= {`weather-btn ${toggleWeather ? "active" : ""}`}
         >
           🌤
-        </button>
-
-        <button 
-          onClick={() => setFreeEditMode(prev => !prev)}    //Using prev is the best practice always, so quick rendering may not affect incorrect values.
-          title="Toggle Edit Mode"
-          className= {`settings-btn ${freeEditMode ? "active" : ""}`}
-        >
-          ✎
         </button>
       </div>
 
