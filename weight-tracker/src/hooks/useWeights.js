@@ -47,10 +47,22 @@ export default function useWeights(year, month) {
 */
 
   //--Input Error Validation logic (along with Input Handling)--
-  const [errors, setErrors] = useState({});           //Errors are stored for each day. Should always be at the top otherwise it'll be empty always due to re-renders.
+  //Errors are stored for each day. Should always be at the top otherwise it'll be empty always due to re-renders.
+  const [errors, setErrors] = useState({});
 
-  const [draft, setDraft] = useState(weights);        //Adding a draft state to temporarily store invalid values, so other calculations aren't affected (like avg).
-        console.log(draft);
+  //For clearing any validation errors when switching months or years. Prevents stale error messages from showing on days of other months.
+  useEffect(() => {
+    setErrors({});
+  }, [month, year]);
+
+  //Adding a draft state to temporarily store invalid values, so other calculations aren't affected (like avg).
+  const [draft, setDraft] = useState({});        
+  
+  //Keep `draft` in sync with `weights` whenever the month/year changes. This ensures that weight inputs reflect the correct data for the selected month.
+  useEffect(() => {
+    setDraft(weights);
+  }, [weights]);
+
   const handleWeightChange = (day, value) => {
     /*Using drafts to temporarily store the state values
     //Always update weights first (allow empty/partial input), then validate, so typing and backspacing aren’t blocked by validation.
