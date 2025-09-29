@@ -1,11 +1,10 @@
-import dotenv from "dotenv";                        //Environmental variable file fetch. Used for security and protecting sensitive infos like API keys.
-dotenv.config();                                    //Loading variables from env. Always keep the import and configs at the top.
-import express from "express";                      //Framework for creating web servers
-import cors from "cors";                            //Importing CORS to bypass restrictions
+import dotenv from "dotenv";                            //Environmental variable file fetch. Used for security and protecting sensitive infos like API keys.
+dotenv.config();                                        //Loading variables from env. Always keep the import and configs at the top.
+import express from "express";                          //Framework for creating web servers
+import cors from "cors";                                //Importing CORS to bypass restrictions
+import mongoose from "mongoose";                        //Importing mongoose library to interact with MongoDB
 import weatherRoutes from "./routes/weatherRoutes.js";
-import mongoose from "mongoose";                    //Imporitng mongoose library to interact with MongoDB
-import User from "./models/user.js";
-import bcrypt from "bcrypt";
+import authRoutes from "./routes/authRoutes.js"
 
 //Connecting the backend to MongoDB server
 mongoose.connect(process.env.MONGO_URI)
@@ -17,12 +16,19 @@ mongoose.connect(process.env.MONGO_URI)
   useUnifiedTopology: true                           //enables the new unified topology layer (improves connection handling & monitoring)
 });*/
 
-const app = express();                            //Our server
-const PORT = process.env.PORT || 3000;            //Using available ports after checking in env. Server will be available at https://localhost:3000 as default.
+const app = express();                              //Our server
+const PORT = process.env.PORT || 3000;              //Using available ports after checking in env. Server will be available at https://localhost:3000 as default.
 
-app.use(cors());                                  //Now the server will be able to run anywhere without having to be inside the local url. (Keeping it open for now)
+app.use(express.json());                            //Middleware to parse JSON
+
+//app.use(express.urlencoded({ extended: true }));  //For accepting URL-encoded form data (form submissions)
+
+app.use(cors());                                    //Now the server will be able to run anywhere without having to be inside the local url. (Keeping it open for now)
 
 /*//Test User code
+import bcrypt from "bcrypt";
+import User from "./models/user.js";
+
 async function  testUser() {
   try {
     const hashedPassword = await bcrypt.hash("password123", 10);
@@ -37,7 +43,9 @@ async function  testUser() {
 testUser();*/
 
 //Mount routes - prefix all paths inside weatherRoutes with /weather
-app.use("/weather", weatherRoutes);               //For any request starting with /weather, use the router imported from weatherRoutes.js
+app.use("/weather", weatherRoutes);                 //For any request starting with /weather, use the router imported from weatherRoutes.js
+
+app.use("/auth",authRoutes);                        //POST /auth/
 
 //Starts the server
 app.listen(PORT, () =>

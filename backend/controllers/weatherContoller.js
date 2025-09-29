@@ -16,7 +16,7 @@ export async function getWeather(req, res) {
     
     //Validate location
     if (!city && !(lat && lon)) {
-      return res.status(400).json({error: "No location provided" });
+      return res.status(400).json({ error: "No location provided" });
     }
 
     //Check if data is already cached
