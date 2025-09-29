@@ -1,12 +1,10 @@
-import dotenv from "dotenv";                        //Environmental variable file fetch. Used for security and protecting sensitive infos like API keys.
-dotenv.config();                                    //Loading variables from env. Always keep the import and configs at the top.
 import fetch from "node-fetch";                     //Allows us to use fetch in node.js
-
-const apiKey = process.env.API_KEY;               //Read API_KEY from env
 
 //Service: Fetch weather data from OpenWeather API
 export async function fetchWeatherData({ city, lat, lon }) {
+  const apiKey = process.env.API_KEY;               //Read API_KEY from env
   let url;
+  
   //Adding lat & lon for dynamic fetching of location
   if (lat && lon) {
     url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;

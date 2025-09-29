@@ -7,13 +7,13 @@ export async function postSignUp(req, res) {
 
     //Validate Email/Password
     if (!email || !password) {
-      return res.status(400).json({ error: "Email/Password is required." });
+      return res.status(400).json({ error: "Email/Password is required" });
     }
 
-    //Check if a user already exists
+    //Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: "User already exists." });
+      return res.status(401).json({ error: "User already exists" });
     }
 
     //Hash Password (bcrypt.hash returns a promise. Use await to resolve it.)
