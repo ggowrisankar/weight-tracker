@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 export async function postLogin(req, res) {
   try {
     const { email, password } = req.body;
-    console.log(process.env.JWT_SECRET);
+    
     //Validate Email/Password
     if (!email || !password) {
       return res.status(400).json({ error: "Email/Password is required" });

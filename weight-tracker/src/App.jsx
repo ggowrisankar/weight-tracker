@@ -1,16 +1,24 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import Calendar from './components/Calendar'
+import React from 'react';
+import reactLogo from './assets/react.svg';
+import viteLogo from '/vite.svg';
+import './App.css';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Calendar from './components/Calendar';
+import Login from './pages/login';
+import Signup from './pages/signup';
 
 function App() {
-
+  //BrowserRouter - Wraps the app and enables routing using browser history
+  //Routes - Holds all the individual <Route> components
+  //Route - Maps a URL path to a component
   return (
-    <div>
-      {/*<h2>Weight Tracker</h2>*/}
-      <Calendar />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Calendar />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

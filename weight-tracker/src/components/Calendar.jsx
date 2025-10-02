@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import useWeights from "../hooks/useWeights";
 import useWeather from "../hooks/useWeather";
 import { chunkIntoWeeks, calculateWeeklyAverage, calculateMonthlyAverage, hasMonthEnded } from "../utils/calendarUtils";
@@ -75,27 +76,33 @@ function Calendar () {
   
   return(
     <div>
-      {/* --TOGGLE BUTTON- */}
-      <div className="toggle-button">
-        <button 
-          onClick={() => setFreeEditMode(prev => !prev)}    //Using prev is the best practice always, so quick rendering may not affect incorrect values.
-          title="Toggle Edit Mode"
-          className= {`settings-btn ${freeEditMode ? "active" : ""}`}
-        >
-          ✎
-        </button>
-        
-        <button
-          onClick={() => {
-            setToggleWeather(prev => !prev)
-            //const weather = useWeather(year, month);  //Invalid Hook Call. Hooks shouldn't be called conditionally or in a callback. It should be initialized first.
-          }}
-          title="Toggle Weather Mode"
-          className= {`weather-btn ${toggleWeather ? "active" : ""}`}
-        >
-          🌤
-        </button>
-      </div>
+      {/* --HEADERS/TOGGLE BUTTONs-- */}
+      <header>
+        <div className="toggle-button">
+          <button 
+            onClick={() => setFreeEditMode(prev => !prev)}    //Using prev is the best practice always, so quick rendering may not affect incorrect values.
+            title="Toggle Edit Mode"
+            className= {`settings-btn ${freeEditMode ? "active" : ""}`}
+          >
+            ✎
+          </button>
+    
+          <nav>
+            <Link to="/login" className="login-link">Login / Signup</Link>
+          </nav>
+
+          <button
+            onClick={() => {
+              setToggleWeather(prev => !prev)
+              //const weather = useWeather(year, month);  //Invalid Hook Call. Hooks shouldn't be called conditionally or in a callback. It should be initialized first.
+            }}
+            title="Toggle Weather Mode"
+            className= {`weather-btn ${toggleWeather ? "active" : ""}`}
+          >
+            🌤
+          </button>
+        </div>
+      </header>
 
       {/* --MONTH + YEAR TITLE WITH NAVIGATION BUTTONS-- */}
       <div className="calendar-header">
