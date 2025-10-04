@@ -4,7 +4,9 @@ import express from "express";                          //Framework for creating
 import cors from "cors";                                //Importing CORS to bypass restrictions
 import mongoose from "mongoose";                        //Importing mongoose library to interact with MongoDB
 import weatherRoutes from "./routes/weatherRoutes.js";
-import authRoutes from "./routes/authRoutes.js"
+import authRoutes from "./routes/authRoutes.js";
+import weightRoutes from "./routes/weightRoutes.js";
+import { authMiddleware } from "./middleware/authMiddleware.js";
 
 //Connecting the backend to MongoDB server
 mongoose.connect(process.env.MONGO_URI)
@@ -45,7 +47,9 @@ testUser();*/
 //Mount routes - prefix all paths inside weatherRoutes with /weather
 app.use("/weather", weatherRoutes);                 //For any request starting with /weather, use the router imported from weatherRoutes.js
 
-app.use("/auth",authRoutes);                        //POST /auth/
+app.use("/auth", authRoutes);                       //Auth requests
+
+app.use("/weights", authMiddleware, weightRoutes);  //Mount middleware once it hits the /weights request before redirecting to weightRoutes
 
 //Starts the server
 app.listen(PORT, () =>

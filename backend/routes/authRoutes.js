@@ -4,7 +4,7 @@ import { postLogin } from "../controllers/loginController.js";
 
 const router = express.Router();
 
-//POST used since we are creating a user. Also sensitive info like email/pws are to be sent using body instead of URL queries.
+//POST (/auth) used since we are creating a user. Also sensitive info like email/pws are to be sent using body instead of URL queries.
 router.post("/signup", postSignUp);     
 router.post("/login", postLogin);
 
