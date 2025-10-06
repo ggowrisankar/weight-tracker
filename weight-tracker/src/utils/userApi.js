@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "";             //Variables exposed to the client should start with "VITE_" in env files in Vite.
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";        //Variables exposed to the client should start with "VITE_" in env files in Vite.
 
 async function postJson(url, body) {
   //Sending POST request to the backend
@@ -18,10 +18,10 @@ async function postJson(url, body) {
   }
 }
 
-export function login({ email, password }) {
-  return postJson("/auth/login", { email, password });             //Return is only used since its wrapping another function
+export async function login({ email, password }) {
+  return await postJson("/auth/login", { email, password });             //Return is only used since its wrapping another function
 }
 
-export function signup({ email, password }) {
-  return postJson("/auth/signup", { email, password });            //Return is only used since its wrapping another function
+export async function signup({ email, password }) {
+  return await postJson("/auth/signup", { email, password });            //Return is only used since its wrapping another function
 }

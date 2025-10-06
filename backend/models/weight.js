@@ -7,7 +7,7 @@ const weightSchema = new mongoose.Schema({
     required: true,
     unique:true 
   },
-  weightData: { type: Object, default: {} },
+  weightData: { type: mongoose.Schema.Types.Mixed, default: {} },
 }, { timestamps: true });                               //Automatically adds createdAt & updatedAt
 
 export default mongoose.model("Weight", weightSchema);

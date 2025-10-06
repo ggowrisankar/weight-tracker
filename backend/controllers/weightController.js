@@ -23,7 +23,7 @@ export const getWeightData = async (req, res) => {
 export const postWeightData = async (req, res) => {
   const { year, month } = req.params;
   const dataKey = `${year}-${month}`;
-  const { data } = req.body;
+  const data = req.body;
 
   if (!data || typeof data !== "object") {
     return res.status(400).json({ error: "Invalid data format" });
@@ -37,6 +37,7 @@ export const postWeightData = async (req, res) => {
     }
 
     weightDoc.weightData[dataKey] = data;
+    weightDoc.markModified("weightData");           //Inform Mongoose that 'weightData' has changed (needed when modifying nested/dynamic keys & type is object/mixed)
     await weightDoc.save();
 
     res.json({ message: "Data saved", dataKey, data });
