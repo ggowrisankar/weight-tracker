@@ -1,17 +1,24 @@
 import React, { useState } from "react";
 //Importing navigation hook and Link component from React Router for routing and navigation
 //useNavigate: for programmatic navigation (button clicks). Link: for declarative navigation (like <a> tags, but without page reload)
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Navigate, Link } from "react-router-dom";
+import { useAuth } from "../context/authContext";
 import { login as apiLogin } from "../utils/userApi";
 import "../styles/auth.css";
 
 export default function Login() {
+  const navigate = useNavigate();                       //Get the navigate function
+  const { login, isAuthenticated } = useAuth();         //Get login(), isAuthenticated from context
+
+  //If user is already authenticated, redirect them to the home page.
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;      //Using 'replace' (a prop) to prevent going back to the login page via browser back button, by not adding into browser's history
+  }
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const navigate = useNavigate();                       //Get the navigate function
 
   //Form Validation check
   const validate = () => {
@@ -39,9 +46,11 @@ export default function Login() {
       const result = await apiLogin({ email, password });
       //Success expected: { token, user }
       if (result?.token) {
-        //Store token in localStorage for now (later replace with secure cookie). Optionally store user info as well.
+        /*//Store token in localStorage for now (later replace with secure cookie). Optionally store user info as well.
         localStorage.setItem("wt_token", result.token); //Token response is already string so no need to stringify
         localStorage.setItem("wt_user", JSON.stringify(result.user || {}));
+        */
+        login(result.token, result.user);               //Call AuthContext login()
         navigate("/");                                  //Go back to Calendar
       }
       else {

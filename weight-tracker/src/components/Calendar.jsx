@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/authContext";               //Importing context
 import useWeights from "../hooks/useWeights";
 import useWeather from "../hooks/useWeather";
 import { chunkIntoWeeks, calculateWeeklyAverage, calculateMonthlyAverage, hasMonthEnded } from "../utils/calendarUtils";
@@ -74,6 +75,8 @@ function Calendar () {
   //Toggle icon for editing all days
   const [freeEditMode, setFreeEditMode] = useState(false);
   
+  const { isAuthenticated, user, logout } = useAuth();        //Get isAuthenticated, user, logout from context
+
   return(
     <div>
       {/* --HEADERS/TOGGLE BUTTONs-- */}
@@ -88,7 +91,20 @@ function Calendar () {
           </button>
     
           <nav>
-            <Link to="/login" className="login-link">Login / Signup</Link>
+            {isAuthenticated ? (
+              <div>
+                <span>Logged in as <strong>{(user.email).split("@")[0]}</strong>&nbsp;&nbsp;</span>
+                <button
+                  onClick={logout}
+                  title="Logout"
+                  className= {"logout-btn"}
+                >
+                  ⏻
+                </button>
+              </div>
+              ) : (
+                <Link to="/login" className="login-link">Login / Signup</Link>
+            )}
           </nav>
 
           <button

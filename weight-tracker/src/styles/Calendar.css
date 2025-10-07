@@ -4,7 +4,7 @@
   width: 100%;
 }
 
-.settings-btn, .weather-btn {
+.settings-btn, .weather-btn, .logout-btn {
   padding: 8px;
   border-radius: 10px;
 }
