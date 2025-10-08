@@ -14,6 +14,27 @@
   /*transform: scale(1.2);  /* make it pop */
 }
 
+.loading-text {
+  font-size: 0.875rem;   /* Tailwind's text-sm */
+  color: #6b7280;        /* Tailwind's gray-500 */
+  font-style: italic;    /* italic */
+  margin-top: 0.5rem;    /* Tailwind's mt-2 = 8px = 0.5rem */
+}
+
+.save-status {
+  font-size: 0.875rem;   /* equivalent to Tailwind's text-sm */
+  color: #6b7280;        /* Tailwind's gray-500 */
+  margin-top: 0.25rem;   /* Tailwind's mt-1 */
+}
+
+.save-status .saved {
+  color: #16a34a;        /* Tailwind's green-600 */
+}
+
+.save-status .error {
+  color: #ef4444;        /* Tailwind's red-500 */
+}
+
 /* Month + Year Navigation */
 .calendar-header {
   display: flex;

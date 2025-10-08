@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/authContext";
-import { fetchWeightData } from "../utils/weightApi";
+import { fetchWeightData, saveWeightData } from "../utils/weightApi";
 
 // ---- Custom hook to manage weights ----
 export default function useWeights(year, month) {
@@ -8,7 +8,8 @@ export default function useWeights(year, month) {
   const storageKey = `weights-${year}-${month + 1}`;
 
   const { isAuthenticated } = useAuth();                     //Get isAuthenticated boolean value from AuthContext
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);             //For loading status while fetching data
+  const [saveStatus, setSaveStatus] = useState("idle");      //For saving status while saving data
 
   //Stores weight for each day
   const[weights, setWeights] = useState(() => {             //State: Store weights per day
@@ -27,7 +28,7 @@ export default function useWeights(year, month) {
 */
 
   //Load data when month/year changes
-/*  useEffect(() => {
+/*useEffect(() => {
     const saved = localStorage.getItem(storageKey);
     setWeights(saved ? JSON.parse(saved) : {});
   }, [storageKey]);
@@ -35,13 +36,13 @@ export default function useWeights(year, month) {
   useEffect(() => {
     async function loadWeightData() {
       setLoading(true);
-      //Immediately render local storage data.
-      const localData = localStorage.getItem(storageKey);
-      setWeights(localData ? JSON.parse(localData) : {});
+      try {
+        //Immediately render local storage data.
+        const localData = localStorage.getItem(storageKey);
+        setWeights(localData ? JSON.parse(localData) : {});
 
-      //If logged in, also fetch from the server.
-      if (isAuthenticated) {
-        try {
+        //If logged in, also fetch from the server.
+        if (isAuthenticated) {
           const serverData = await fetchWeightData(year, month + 1);
 
           //Merge/Overwrite server data to local storage.
@@ -50,26 +51,53 @@ export default function useWeights(year, month) {
             setWeights(serverData);
             localStorage.setItem(storageKey, JSON.stringify(serverData));
           }
-        }
-        catch (err) {
-          console.error("Error fetching server weights: ", err);
-        }
+        } 
       }
-      setLoading(false);
-    }
-
+      catch (err) {
+        console.error("Error fetching server weights: ", err);
+      }
+      finally {
+        setLoading(false);                                                     //setLoading runs even if fetchWeightData throws error
+      }
+    }   
     loadWeightData();
   }, [year, month, isAuthenticated]);
 
   //Save to localstorage after any updation
-/*  useEffect(() => {
-    localStorage.setItem("weights", JSON.stringify(weights));
-  }, [weights]);              //[weights] - Dependency array to update after every change
-*/
-
-  useEffect(() => {
+/*useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(weights));
   }, [weights, storageKey]);     //Both are needed in the dependency array to ensure this runs when either changes. storageKey is added since its dynamic based on year/month and if it changes without a change in weights, the effect would not run unless it's listed. Including both ensures we always write to the correct key in localStorage.
+*/
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify(weights));
+
+    let debounceTimeout;
+    let idleResetTimeout;
+
+    if (isAuthenticated) {
+      setSaveStatus("saving");                              //When user changes weight, mark as "saving..."
+
+      debounceTimeout = setTimeout(async () => {           //Async is used so await can be used for saveWeightData and in turn use try-catch
+        try {
+          const dataSaved = await saveWeightData(year, month + 1, weights);
+          console.log(dataSaved);
+          if (dataSaved.message === "Data saved") {
+            setSaveStatus("saved");
+            idleResetTimeout = setTimeout(() => setSaveStatus("idle"), 1500);  //“saved” flashes for 2 seconds, then hides (Reset back to idle after 2 second)
+          }
+        }
+        catch (err) {
+          console.error("Error saving user weights to the server: ", err);
+          setSaveStatus("error");
+        }
+      }, 3000);                                   //Waits 3s after user stops editing, then executes save
+    }
+
+    return () => {                                //Separate cleanups: to clear the timeouts to prevent memory leaks or unwanted saves if dependencies change
+      clearTimeout(debounceTimeout);
+      clearTimeout(idleResetTimeout);        
+    } 
+  }, [weights, year, month, isAuthenticated]);
 
   //Handle input change
 /*  const handleWeightChange = (day, value) => {      //Handler to update each weight
@@ -163,5 +191,5 @@ export default function useWeights(year, month) {
     }
   }
 
-  return { weights, handleWeightChange, errors, draft, handleInputValidation };
+  return { weights, handleWeightChange, errors, draft, handleInputValidation, loading, saveStatus };
 }

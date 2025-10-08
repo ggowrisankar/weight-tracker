@@ -37,7 +37,8 @@ function Calendar () {
   } 
 
   // --- Custom hooks ---
-  const { weights, handleWeightChange, errors, draft, handleInputValidation } = useWeights(year, month);     //useWeights hook (weights stored in localStorage)
+  //useWeights hook (weights stored in localStorage):
+  const { weights, handleWeightChange, errors, draft, handleInputValidation, loading, saveStatus } = useWeights(year, month);
   const [toggleWeather, setToggleWeather] = useState(false);                          //Weather icon is only displayed if toggled
   const weather = useWeather(year, month, toggleWeather);                             //useWeather hook (weather fetched + cached)
   
@@ -119,7 +120,18 @@ function Calendar () {
           </button>
         </div>
       </header>
-
+      {isAuthenticated && (
+        <div className="save-status">
+          {saveStatus === "saving" && <span>💾 Saving...</span>}
+          {saveStatus === "saved" && <span className="saved">✅ Saved</span>}
+          {saveStatus === "error" && <span className="error">⚠️ Save failed</span>}
+        </div>
+      )}
+      {isAuthenticated && loading && (
+        <div className="save-status">
+          <div className="loading-text">Loading data...</div>
+        </div>
+      )}
       {/* --MONTH + YEAR TITLE WITH NAVIGATION BUTTONS-- */}
       <div className="calendar-header">
         <button onClick={goToPreviousMonth} title="Previous">🡨</button>
