@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../context/authContext";
+import { fetchWeightData } from "../utils/weightApi";
 
 // ---- Custom hook to manage weights ----
 export default function useWeights(year, month) {
   //  const storageKey = `weights-${currentYear}-${currentMonth + 1}`; //month + 1 so Jan=1, Feb=2 ...
   const storageKey = `weights-${year}-${month + 1}`;
 
+  const { isAuthenticated } = useAuth();                     //Get isAuthenticated boolean value from AuthContext
+  const [loading, setLoading] = useState(false);
+
   //Stores weight for each day
-  const[weights, setWeights] = useState(() => {           //State: Store weights per day
+  const[weights, setWeights] = useState(() => {             //State: Store weights per day
   //  const saved = localStorage.getItem("weights");        //Load data from localstorage for first render
     const saved = localStorage.getItem(storageKey);
     return saved ? JSON.parse(saved) : {};
@@ -22,10 +27,39 @@ export default function useWeights(year, month) {
 */
 
   //Load data when month/year changes
-  useEffect(() => {
+/*  useEffect(() => {
     const saved = localStorage.getItem(storageKey);
     setWeights(saved ? JSON.parse(saved) : {});
   }, [storageKey]);
+*/
+  useEffect(() => {
+    async function loadWeightData() {
+      setLoading(true);
+      //Immediately render local storage data.
+      const localData = localStorage.getItem(storageKey);
+      setWeights(localData ? JSON.parse(localData) : {});
+
+      //If logged in, also fetch from the server.
+      if (isAuthenticated) {
+        try {
+          const serverData = await fetchWeightData(year, month + 1);
+
+          //Merge/Overwrite server data to local storage.
+          if (Object.keys(serverData || {}).length > 0) {                     //Checks if serverData is an empty object
+            //Default: prefer server data
+            setWeights(serverData);
+            localStorage.setItem(storageKey, JSON.stringify(serverData));
+          }
+        }
+        catch (err) {
+          console.error("Error fetching server weights: ", err);
+        }
+      }
+      setLoading(false);
+    }
+
+    loadWeightData();
+  }, [year, month, isAuthenticated]);
 
   //Save to localstorage after any updation
 /*  useEffect(() => {

@@ -47,5 +47,3 @@ export async function fetchWeightData(year, month) {
 export async function saveWeightData(year, month, data) {
   return await postWeightJson(`/weights/${year}/${month}`, data);
 }
-
-export { getWeightJson, postWeightJson };

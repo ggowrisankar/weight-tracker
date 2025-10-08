@@ -10,15 +10,15 @@ export default function Login() {
   const navigate = useNavigate();                       //Get the navigate function
   const { login, isAuthenticated } = useAuth();         //Get login(), isAuthenticated from context
 
-  //If user is already authenticated, redirect them to the home page.
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;      //Using 'replace' (a prop) to prevent going back to the login page via browser back button, by not adding into browser's history
-  }
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  //If user is already authenticated, redirect them to the home page.
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;      //Using 'replace' (a prop) to prevent going back to the login page via browser back button, by not adding into browser's history
+  }
 
   //Form Validation check
   const validate = () => {

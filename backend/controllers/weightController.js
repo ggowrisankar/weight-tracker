@@ -8,7 +8,7 @@ export const getWeightData = async (req, res) => {
   try {
     let weightDoc = await Weight.findOne({ userId: req.user.id });      //Fetches the document by userId if it exists
 
-    if (!weightDoc) return res.json({});                                  //No data yet, send empty response
+    if (!weightDoc) return res.json({});                                //No data yet, send empty response
 
     const weightData = weightDoc.weightData[dataKey] || {};
     res.json(weightData);
