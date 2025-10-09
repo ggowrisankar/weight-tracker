@@ -80,7 +80,7 @@ export default function useWeights(year, month) {
       debounceTimeout = setTimeout(async () => {           //Async is used so await can be used for saveWeightData and in turn use try-catch
         try {
           const dataSaved = await saveWeightData(year, month + 1, weights);
-          console.log(dataSaved);
+          
           if (dataSaved.message === "Data saved") {
             setSaveStatus("saved");
             idleResetTimeout = setTimeout(() => setSaveStatus("idle"), 1500);  //“saved” flashes for 2 seconds, then hides (Reset back to idle after 2 second)

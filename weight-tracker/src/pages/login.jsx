@@ -50,7 +50,7 @@ export default function Login() {
         localStorage.setItem("wt_token", result.token); //Token response is already string so no need to stringify
         localStorage.setItem("wt_user", JSON.stringify(result.user || {}));
         */
-        login(result.token, result.user);               //Call AuthContext login()
+        await login(result.token, result.user);         //Call AuthContext login()
         navigate("/");                                  //Go back to Calendar
       }
       else {

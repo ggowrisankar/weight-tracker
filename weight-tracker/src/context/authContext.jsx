@@ -1,5 +1,6 @@
 //Used to persist and manage user authentication state (logged in vs logged out) across the app — based on whether a valid token and user exist.
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { migrateWeightToServer } from "../utils/weightApi";
 
 const AuthContext = createContext();                  //Creates a context for authentication
 
@@ -28,11 +29,40 @@ export function AuthProvider({ children }) {
   }, []);
 
   //Function to log in to the user and store token and user data to localStorage.
-  const login = (token, userData) => {
+  const login = async (token, userData) => {
     localStorage.setItem("wt_token", token);
     localStorage.setItem("wt_user", JSON.stringify(userData));
 
     setUser(userData);                //Update user state
+
+    //Collect all local weight entires (To replace all "weights-" entries to "yyyy-mm" format so it can be sent for migration)
+    const localWeightData = {};
+    for (let i=0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+
+      if (key.startsWith("weights-")) {                         //Look for keys like "weights-yyyy-mm"
+        const monthKey = key.replace("weights-", "");           //Replace keys to "yyyy-mm"
+        const value = localStorage.getItem(key);
+
+        try {
+          localWeightData[monthKey] = JSON.parse(value);        //Store the value of old key to the new key
+        }
+        catch {
+          console.error("Failed to parse local weight data for ", key);
+        }
+      }
+    }
+
+    if (Object.keys(localWeightData).length > 0 && !localStorage.getItem("wt_migrated")) {
+      try {
+        await migrateWeightToServer(localWeightData);
+        console.log("Data Migration Successful");
+        localStorage.setItem("wt_migrated", "true");            //Migration flag to avoid re-running after every login
+      }
+      catch (err) {
+        console.error("Migration failed: ", err);
+      }
+    }
   };
 
   //Function to log out of the user and remove token and user data from localStorage.
