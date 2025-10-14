@@ -7,7 +7,7 @@ export default function useWeights(year, month) {
   //  const storageKey = `weights-${currentYear}-${currentMonth + 1}`; //month + 1 so Jan=1, Feb=2 ...
   const storageKey = `weights-${year}-${month + 1}`;
 
-  const { isAuthenticated } = useAuth();                     //Get isAuthenticated boolean value from AuthContext
+  const { isAuthenticated, hasMigrated } = useAuth();                     //Get isAuthenticated boolean value from AuthContext
   const [loading, setLoading] = useState(false);             //For loading status while fetching data
   const [saveStatus, setSaveStatus] = useState("idle");      //For saving status while saving data
 
@@ -43,15 +43,17 @@ export default function useWeights(year, month) {
 
         //If logged in, also fetch from the server.
         if (isAuthenticated) {
-          const serverData = await fetchWeightData(year, month + 1);
+          if (!hasMigrated) return;                                           //Ensures stale values are not rendered (to reflect new data post migration)
 
+          const serverData = await fetchWeightData(year, month + 1);
+          
           //Merge/Overwrite server data to local storage.
           if (Object.keys(serverData || {}).length > 0) {                     //Checks if serverData is an empty object
             //Default: prefer server data
             setWeights(serverData);
             localStorage.setItem(storageKey, JSON.stringify(serverData));
           }
-        } 
+        }
       }
       catch (err) {
         console.error("Error fetching server weights: ", err);
@@ -61,7 +63,7 @@ export default function useWeights(year, month) {
       }
     }   
     loadWeightData();
-  }, [year, month, isAuthenticated]);
+  }, [year, month, isAuthenticated, hasMigrated]);
 
   //Save to localstorage after any updation
 /*useEffect(() => {

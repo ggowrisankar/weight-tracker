@@ -40,6 +40,10 @@ async function postWeightJson(url, body) {
   }
 }
 
+export async function fetchAllWeightData() {
+  return await getWeightJson("/weights");
+}
+
 export async function fetchWeightData(year, month) {
   return await getWeightJson(`/weights/${year}/${month}`);
 }
@@ -48,6 +52,6 @@ export async function saveWeightData(year, month, data) {
   return await postWeightJson(`/weights/${year}/${month}`, data);
 }
 
-export async function migrateWeightToServer(data) {
-  return await postWeightJson("/weights/migrate", data);
+export async function migrateWeightToServer(data, overwrite = false) {
+  return await postWeightJson("/weights/migrate", { data, overwrite });
 }
