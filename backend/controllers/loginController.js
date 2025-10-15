@@ -19,13 +19,19 @@ export async function postLogin(req, res) {
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
     //Creates a JWT: jwt.sign(payload, secret, options)
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { id: user._id, email: user.email },      //Payload: Data this token carries.
       process.env.JWT_SECRET,                   //Secret: Used to sign the token so the server can later verify it hasn’t been tampered with.
       { expiresIn: "1h" }                       //Options: Sets the token expiration time.
     );
 
-    res.json({ token, user: { id: user._id, email: user.email } });
+    const refreshToken = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({ accessToken, refreshToken, user: { id: user._id, email: user.email } });
   }
   catch (err) {
     console.error("Login error: ",err.message);

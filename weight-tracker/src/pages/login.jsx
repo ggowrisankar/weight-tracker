@@ -45,13 +45,14 @@ export default function Login() {
     try {
       const result = await apiLogin({ email, password });
       //Success expected: { token, user }
-      if (result?.token) {
+      if (result) {
         /*//Store token in localStorage for now (later replace with secure cookie). Optionally store user info as well.
         localStorage.setItem("wt_token", result.token); //Token response is already string so no need to stringify
         localStorage.setItem("wt_user", JSON.stringify(result.user || {}));
         */
-        await login(result.token, result.user);         //Call AuthContext login()
-        navigate("/");                                  //Go back to Calendar
+        const { accessToken, refreshToken, user } = result;
+        await login(accessToken, refreshToken, user);         //Call AuthContext login()
+        navigate("/");                                        //Go back to Calendar
       }
       else {
         setError(result?.error || "Login failed");

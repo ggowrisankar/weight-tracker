@@ -1,6 +1,7 @@
 //Used to persist and manage user authentication state (logged in vs logged out) across the app — based on whether a valid token and user exist.
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { isTokenValid, migrationHandler } from "../utils/contextUtils";
+import { refreshAccessToken } from "../utils/userApi";
 
 const AuthContext = createContext();                  //Creates a context for authentication
 
@@ -12,18 +13,62 @@ export function AuthProvider({ children }) {
   const [hasMigrated, setHasMigrated] = useState(false);                    //Flag for checking if data migration has happened or not (used for rerending UI data if true)
 
   useEffect(() => {
-    const token = localStorage.getItem("wt_token");
+    const accessToken = localStorage.getItem("wt_token");
+    const refreshToken = localStorage.getItem("wt_refresh");
     const userData = localStorage.getItem("wt_user");
 
-    if (token && userData && isTokenValid(token)) {
+    async function restoreSession() {
+      if (!refreshToken && !userData) {
+        logout();
+        setLoading(false);
+        return;
+      }
+
+      try {
+        let validToken = accessToken;
+
+        //If access token expired but refresh exists, try refreshing.
+        if (!isTokenValid(accessToken) && refreshToken) {
+          const refreshed = await refreshAccessToken(refreshToken, logout);
+          if (refreshed?.accessToken) {
+            validToken = refreshed?.accessToken;
+            localStorage.setItem("wt_token", validToken);
+            console.log("Session restored with new token");
+          }
+          else {
+            console.log("Refresh failed on startup");
+            logout();
+            setLoading(false);
+            return;
+          }
+        }
+
+        //Restore user and start timer
+        setUser(JSON.parse(userData));
+        autoLogoutTimeout(validToken, refreshToken);
+      }
+      catch (e) {
+        console.error("Invalid stored user data:", e);
+        localStorage.removeItem("wt_token");
+        localStorage.removeItem("wt_refresh");
+        localStorage.removeItem("wt_user");
+        logout();
+      }
+      finally {
+        setLoading(false);
+      }
+    }
+    /*
+    if (accessToken && refreshToken && userData && isTokenValid(accessToken)) {
       //try-catch used for handling the parsed data. Success > Update user state : Failure > Remove corrupted data.
       try {
         setUser(JSON.parse(userData));
-        autoLogoutTimeout(token);
+        autoLogoutTimeout(accessToken, refreshToken);
       }
       catch (e) {
         console.error("Invalid stored user data: ", e);
         localStorage.removeItem("wt_token");
+        localStorage.removeItem("wt_refresh");
         localStorage.removeItem("wt_user");
         logout();
       }
@@ -33,19 +78,22 @@ export function AuthProvider({ children }) {
     }
 
     setLoading(false);                //Mark loading as complete
+    */
+    restoreSession();
   }, []);
 
   //Function to log in to the user and store token and user data to localStorage.
-  const login = (token, userData) => {
+  const login = (accessToken, refreshToken, userData) => {
     if (tokenExpiryTimeout) clearTimeout(tokenExpiryTimeout);       //Clear any existing token expiry timeout to avoid multiple logout timers
 
-    localStorage.setItem("wt_token", token);
+    localStorage.setItem("wt_token", accessToken);
+    localStorage.setItem("wt_refresh", refreshToken);
     localStorage.setItem("wt_user", JSON.stringify(userData));
 
     setUser(userData);                //Update user state
 
     //Token expiry auto-logout logic:
-    autoLogoutTimeout(token);
+    autoLogoutTimeout(accessToken, refreshToken);
 
     //Data Migration Handler:
     migrationHandler(setHasMigrated);
@@ -56,8 +104,10 @@ export function AuthProvider({ children }) {
     if (tokenExpiryTimeout) clearTimeout(tokenExpiryTimeout);   //Clear any existing token expiry timeout to avoid multiple logout timers
 
     localStorage.removeItem("wt_token");
+    localStorage.removeItem("wt_refresh");
     localStorage.removeItem("wt_user");
 
+    //Skip migrated flags in production since you dont want migration to perform after every login
     localStorage.removeItem("wt_migrated");
     setHasMigrated(false);
 
@@ -65,14 +115,27 @@ export function AuthProvider({ children }) {
   };
 
   //Function to execute autoLogout after token expiry.
-  const autoLogoutTimeout = (token) => {
+  const autoLogoutTimeout = (accessToken, refreshToken) => {
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const expiry = payload.exp * 1000;                        //*1000 makes it in ms (expiry default is in seconds)
-      const timeout = expiry - Date.now();                      //Subtracts to get the value in ms
+      const payload = JSON.parse(atob(accessToken.split(".")[1]));  //atob decodes Base64-encoded payload
+      const expiry = payload.exp * 1000;                            //*1000 makes it in ms (expiry default is in seconds)
+      const timeout = expiry - Date.now() - 30000;                  //Subtracts to get the value in ms (Calls 30s early to trigger refresh token logic)
   
       if (timeout > 0) {
-        const timeoutId = setTimeout(() => logout(), timeout);
+        const timeoutId = setTimeout(async() => {
+          console.log("Calling for new access token");
+          const newToken = await refreshAccessToken(refreshToken, logout);
+          if (newToken?.accessToken) {
+            console.log("Token refreshed");
+            localStorage.setItem("wt_token", newToken.accessToken);
+            autoLogoutTimeout(newToken.accessToken, refreshToken);
+          }
+          else {
+            console.log("Refresh failed... logging out");
+            logout();
+          }
+        }, timeout);
+
         setTokenExpiryTimeout(timeoutId);
       }
     }

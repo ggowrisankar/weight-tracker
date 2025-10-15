@@ -25,3 +25,16 @@ export async function login({ email, password }) {
 export async function signup({ email, password }) {
   return await postJson("/auth/signup", { email, password });            //Return is only used since its wrapping another function
 }
+
+export async function refreshAccessToken(refreshToken, logout) {
+  const result = await postJson("/auth/refresh", { token: refreshToken });
+
+  //Detect if refresh token has expired or is invalid. (Necessary to avoid silent broken 403 loops)
+  if (result?.error?.toLowerCase().includes("expired") || result?.error?.toLowerCase().includes("invalid")) {
+    console.warn("Refresh token expired or invalid. Logging out...");
+    logout();
+    return null;
+  }
+
+  return result;
+}
