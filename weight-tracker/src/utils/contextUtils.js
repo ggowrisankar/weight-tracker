@@ -1,4 +1,5 @@
-import { fetchAllWeightData, migrateWeightToServer } from "./weightApi";
+import { fetchAllWeightData, migrateWeightToServer, clearServerWeightData } from "./weightApi";
+import { clearLocalWeightData } from "./calendarUtils";
 
 //Function to check if token is valid. (Returns boolean)
 export function isTokenValid(token) {
@@ -56,11 +57,12 @@ export async function migrationHandler(setHasMigrated) {
         `Choose how to proceed:\n` +
         `1 → Use local data only (overwrite server)\n` +
         `2 → Use server data only (discard local changes)\n` +
-        `3 → Merge both (local overwrites matching days) [default]\n\n` +
-        `Enter 1, 2, or 3:`
+        `3 → Merge both (local overwrites matching days) [default]\n` +
+        `4 → Start with a clean slate (this will PERMANENTLY DELETE all existing data) \n\n` +
+        `Enter 1, 2, 3 or 4:`
       );
 
-      const choice = userInput?.trim() || "3";        //Fallback to merge (3) by default (trim used to clear out whitespaces for avoiding logical errors)
+      const choice = userInput?.trim() || "3";        //Fallback to merge (3/default) by default (trim used to clear out whitespaces for avoiding logical errors)
       let finalMergedData;
 
       switch (choice) {
@@ -71,6 +73,14 @@ export async function migrationHandler(setHasMigrated) {
         case "2":
           finalMergedData = serverData;
           break;
+
+        case "4":
+          clearLocalWeightData();
+          await clearServerWeightData();
+
+          setHasMigrated(true);
+          localStorage.setItem("wt_migrated", "true");
+          return;
 
         default :
           finalMergedData = mergeWeightData(serverData, localData);

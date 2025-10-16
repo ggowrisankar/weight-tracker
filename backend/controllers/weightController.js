@@ -99,15 +99,32 @@ export const migrateWeightData = async (req, res) => {
             };
           }
         }
-        weightDoc.markModified("weightData");
+       // weightDoc.markModified("weightData");
       }
     }
-
+    weightDoc.markModified("weightData");
     await weightDoc.save();                                 //Explicitly call it to save the new/updated weight document to the database
     res.json({ message: "Migrated data successfully", weightData: weightDoc.weightData });
   }
   catch (err) {
     console.log("Migration error: ", err);
     res.status(500).json({ error: "Server error during migration" });
+  }
+};
+
+export const resetWeightData = async (req, res) => {
+  try {
+    let weightDoc = await Weight.findOne({ userId: req.user.id });
+    if (!weightDoc) return res.status(404).json({ error: "No weight data found for this user" });
+
+    weightDoc.weightData = {};
+    weightDoc.markModified("weightData");
+    await weightDoc.save();
+
+    res.json({ message: "Data cleared successfully", cleared: true, data: weightDoc.weightData })
+  }
+  catch (err) {
+    console.log("Resetting data error: ", err);
+    res.status(500).json({ error: "Server error clearing weight data" });
   }
 };

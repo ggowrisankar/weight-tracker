@@ -38,7 +38,7 @@ function Calendar () {
 
   // --- Custom hooks ---
   //useWeights hook (weights stored in localStorage):
-  const { weights, handleWeightChange, errors, draft, handleInputValidation, loading, saveStatus } = useWeights(year, month);
+  const { weights, handleWeightChange, errors, draft, handleInputValidation, loading, saveStatus, handleReset } = useWeights(year, month);
   const [toggleWeather, setToggleWeather] = useState(false);                          //Weather icon is only displayed if toggled
   const weather = useWeather(year, month, toggleWeather);                             //useWeather hook (weather fetched + cached)
   
@@ -90,7 +90,14 @@ function Calendar () {
           >
             ✎
           </button>
-    
+
+          <button
+            onClick={handleReset}
+            title="Reset weights"
+            className= {"reset-btn"}
+          >
+            🗑
+          </button>
           <nav>
             {isAuthenticated ? (
               <div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/authContext";
-import { fetchWeightData, saveWeightData } from "../utils/weightApi";
+import { fetchWeightData, saveWeightData, clearServerWeightData } from "../utils/weightApi";
+import { clearLocalWeightData } from "../utils/calendarUtils";
 
 // ---- Custom hook to manage weights ----
 export default function useWeights(year, month) {
@@ -191,7 +192,21 @@ export default function useWeights(year, month) {
         [day]: "Only 30-300kgs"
       }));
     }
-  }
+  };
 
-  return { weights, handleWeightChange, errors, draft, handleInputValidation, loading, saveStatus };
+  const handleReset = async () => {
+    const confirm = window.confirm("Reset all weight data? This action cannot be undone");
+    if (!confirm) return;
+
+    setWeights({});
+    clearLocalWeightData();
+    try {
+      if (isAuthenticated) await clearServerWeightData();
+    }
+    catch (err) {
+      console.error("[FullReset] Server reset failed:", err);
+    }
+  }; 
+
+  return { weights, handleWeightChange, errors, draft, handleInputValidation, loading, saveStatus, handleReset };
 }

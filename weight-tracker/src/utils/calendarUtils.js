@@ -36,3 +36,12 @@ export function hasMonthEnded(currentDate, month, year) {
   return year < currentDate.getFullYear() ||
     (year === currentDate.getFullYear() && month < currentDate.getMonth())
 }
+
+//Clearing all stored values
+export function clearLocalWeightData() {
+  Object.keys(localStorage)
+  .filter(key => key.startsWith("weights-"))
+  .forEach(key => localStorage.removeItem(key));
+
+  console.log("[Reset] Cleared localStorage weight inputs");
+}

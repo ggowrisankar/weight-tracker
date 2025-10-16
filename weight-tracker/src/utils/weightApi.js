@@ -55,3 +55,7 @@ export async function saveWeightData(year, month, data) {
 export async function migrateWeightToServer(data, overwrite = false) {
   return await postWeightJson("/weights/migrate", { data, overwrite });
 }
+
+export async function clearServerWeightData() {
+  return await postWeightJson("/weights/reset", {});
+}
