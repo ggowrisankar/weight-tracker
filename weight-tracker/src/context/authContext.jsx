@@ -112,6 +112,7 @@ export function AuthProvider({ children }) {
     setHasMigrated(false);
 
     setUser(null);                              //Clear user state
+    console.log("[Auth] User logged out, storage cleared");
   };
 
   //Function to execute autoLogout after token expiry.
@@ -119,19 +120,22 @@ export function AuthProvider({ children }) {
     try {
       const payload = JSON.parse(atob(accessToken.split(".")[1]));  //atob decodes Base64-encoded payload
       const expiry = payload.exp * 1000;                            //*1000 makes it in ms (expiry default is in seconds)
-      const timeout = expiry - Date.now() - 30000;                  //Subtracts to get the value in ms (Calls 30s early to trigger refresh token logic)
-  
+      const timeout = Math.max(expiry - Date.now() - 30000, 0);     //Subtracts to get the value in ms - Calls 30s early to trigger refresh token logic (Avoiding -ve values)
+      
+      console.log(`[Token Timer] Access token expires at: ${new Date(expiry).toLocaleTimeString()}`);
+      console.log(`[Token Timer] Refresh scheduled to trigger in ${(timeout / 1000).toFixed(1)}s`);
+
       if (timeout > 0) {
         const timeoutId = setTimeout(async() => {
-          console.log("Calling for new access token");
+          console.log("[Token Refresh] Attempting to refresh access token...");
           const newToken = await refreshAccessToken(refreshToken, logout);
           if (newToken?.accessToken) {
-            console.log("Token refreshed");
+            console.log("[Token Refresh] New access token received");
             localStorage.setItem("wt_token", newToken.accessToken);
             autoLogoutTimeout(newToken.accessToken, refreshToken);
           }
           else {
-            console.log("Refresh failed... logging out");
+            console.log("[Token Refresh] Refresh failed... logging out");
             logout();
           }
         }, timeout);
@@ -139,8 +143,8 @@ export function AuthProvider({ children }) {
         setTokenExpiryTimeout(timeoutId);
       }
     }
-    catch {
-      console.error("Invalid token payload");
+    catch (err) {
+      console.error("[Token Timer] Invalid token payload: ", err);
       logout();
     }
   };
