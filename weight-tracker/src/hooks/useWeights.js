@@ -1,14 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../context/authContext";
 import { fetchWeightData, saveWeightData, clearServerWeightData } from "../utils/weightApi";
-import { clearLocalWeightData } from "../utils/calendarUtils";
+import { storageKeyFor, clearLocalWeightData } from "../utils/calendarUtils";
 
 // ---- Custom hook to manage weights ----
 export default function useWeights(year, month) {
-  //  const storageKey = `weights-${currentYear}-${currentMonth + 1}`; //month + 1 so Jan=1, Feb=2 ...
-  const storageKey = `weights-${year}-${month + 1}`;
+  //const storageKey = `weights-${currentYear}-${currentMonth + 1}`; //month + 1 so Jan=1, Feb=2 ...
+  //const storageKey = `weights-${year}-${month + 1}`;
 
-  const { isAuthenticated, hasMigrated } = useAuth();                     //Get isAuthenticated boolean value from AuthContext
+  const debounceRef = useRef(null);                          //useRef keeps debounceRef persistent across renders without re-rendering (returns {current: initialValue})
+
+  const { isAuthenticated, user, hasMigrated } = useAuth();  //Get isAuthenticated boolean value from AuthContext
+  const ownerId = isAuthenticated && user ? user.id : "guest";
+  const storageKey = storageKeyFor(ownerId, year, month + 1);
+
   const [loading, setLoading] = useState(false);             //For loading status while fetching data
   const [saveStatus, setSaveStatus] = useState("idle");      //For saving status while saving data
 
@@ -47,13 +52,12 @@ export default function useWeights(year, month) {
           if (!hasMigrated) return;                                           //Ensures stale values are not rendered (to reflect new data post migration)
 
           const serverData = await fetchWeightData(year, month + 1);
-          
           //Merge/Overwrite server data to local storage.
-          if (Object.keys(serverData || {}).length > 0) {                     //Checks if serverData is an empty object
+          //if (Object.keys(serverData || {}).length > 0) {                     //Checks if serverData is an empty object
             //Default: prefer server data
             setWeights(serverData);
             localStorage.setItem(storageKey, JSON.stringify(serverData));
-          }
+          //}
         }
       }
       catch (err) {
@@ -74,13 +78,12 @@ export default function useWeights(year, month) {
   useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(weights));
 
-    let debounceTimeout;
     let idleResetTimeout;
 
     if (isAuthenticated) {
       setSaveStatus("saving");                              //When user changes weight, mark as "saving..."
 
-      debounceTimeout = setTimeout(async () => {           //Async is used so await can be used for saveWeightData and in turn use try-catch
+      debounceRef.current = setTimeout(async () => {        //Async is used so await can be used for saveWeightData and in turn use try-catch
         try {
           const dataSaved = await saveWeightData(year, month + 1, weights);
           
@@ -93,13 +96,37 @@ export default function useWeights(year, month) {
           console.error("Error saving user weights to the server: ", err);
           setSaveStatus("error");
         }
-      }, 3000);                                   //Waits 3s after user stops editing, then executes save
+      }, 1500);                                   //Waits until mentioned seconds after user stops editing, then executes save
     }
 
     return () => {                                //Separate cleanups: to clear the timeouts to prevent memory leaks or unwanted saves if dependencies change
-      clearTimeout(debounceTimeout);
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
       clearTimeout(idleResetTimeout);        
     } 
+  }, [weights, year, month, isAuthenticated]);
+
+  //Flushing to manually force a save and clear any pending debounce (during migration/logout/reset data...)
+  //(useCallback memoizes fn to avoid recreating it unnecessarily - doesn't re-render unless dependencies change)
+  const flushPendingSaves = useCallback(async () => {
+    if (!isAuthenticated) return;
+
+    //Clear the debounce timer if still pending:
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+
+    try {
+      console.log("[Flush] Forcing immediate server sync...");
+      const res = await saveWeightData(year, month + 1, weights);
+      console.log("[Flush] Sync complete: ", res);
+      return res;
+    }
+    catch (err) {
+      console.error("[Flush] Error while flushing:", err);
+      throw err;
+    }
   }, [weights, year, month, isAuthenticated]);
 
   //Handle input change
@@ -198,15 +225,19 @@ export default function useWeights(year, month) {
     const confirm = window.confirm("Reset all weight data? This action cannot be undone");
     if (!confirm) return;
 
-    setWeights({});
-    clearLocalWeightData();
     try {
-      if (isAuthenticated) await clearServerWeightData();
+      if (isAuthenticated) {
+        await flushPendingSaves();                                            //Flush first
+        await clearServerWeightData();
+      }
     }
     catch (err) {
       console.error("[FullReset] Server reset failed:", err);
     }
+
+    setWeights({});
+    clearLocalWeightData();                                                  //Clear ALL stored weight keys (guest + any user keys)
   }; 
 
-  return { weights, handleWeightChange, errors, draft, handleInputValidation, loading, saveStatus, handleReset };
+  return { weights, handleWeightChange, errors, draft, handleInputValidation, loading, saveStatus, handleReset, flushPendingSaves };
 }

@@ -1,7 +1,8 @@
 //Used to persist and manage user authentication state (logged in vs logged out) across the app — based on whether a valid token and user exist.
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { isTokenValid, migrationHandler } from "../utils/contextUtils";
+import { isTokenValid, migrationHandler, flushAllLocalToServer } from "../utils/contextUtils";
 import { refreshAccessToken } from "../utils/userApi";
+import { getAllKeysForOwner } from "../utils/calendarUtils";
 
 const AuthContext = createContext();                  //Creates a context for authentication
 
@@ -11,7 +12,11 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);                             //State to indicate if app is still checking auth status
   const [tokenExpiryTimeout, setTokenExpiryTimeout] = useState(null);       //Stores timeout ID to allow clearing the auto-logout timer when needed
   const [hasMigrated, setHasMigrated] = useState(false);                    //Flag for checking if data migration has happened or not (used for rerending UI data if true)
-
+ 
+  /*//Helper fn to fetch flushPendingSaves from Calendar so it can be used in logout for triggering force saves. [Removed since its month wise sync]
+  const [flushCallback, setFlushCallback] = useState(false);
+  const registerFlushHandler = (fn) => setFlushCallback(() => fn);          //flushCallback becomes flushPendingSaves
+  */
   useEffect(() => {
     const accessToken = localStorage.getItem("wt_token");
     const refreshToken = localStorage.getItem("wt_refresh");
@@ -96,12 +101,36 @@ export function AuthProvider({ children }) {
     autoLogoutTimeout(accessToken, refreshToken);
 
     //Data Migration Handler:
-    migrationHandler(setHasMigrated);
+    //migrationHandler(setHasMigrated);     //Moved migration to Calendar for better robustability (always runs against the most up-to date server state)
   };
 
   //Function to log out of the user and remove token and user data from localStorage.
-  const logout = () => {
-    if (tokenExpiryTimeout) clearTimeout(tokenExpiryTimeout);   //Clear any existing token expiry timeout to avoid multiple logout timers
+  const logout = async () => {
+    if (tokenExpiryTimeout) clearTimeout(tokenExpiryTimeout);     //Clear any existing token expiry timeout to avoid multiple logout timers
+
+    //if (flushCallback) await flushCallback();                   //Flush before logout
+    if (user?.id) {
+      try {
+        await flushAllLocalToServer(user.id);                       //Flush all data to server before logout
+      }
+      catch (err) {
+        console.error("[Auth] flushAllLocalToServer failed: ", err);
+      }
+    
+      const userKeys = getAllKeysForOwner(user.id);
+      if (userKeys.length > 0) {
+        for (const key of userKeys) {
+          const monthKey = key.replace(`weights-${user.id}-`, "");
+          const value = localStorage.getItem(key);
+
+          if (value) {
+            localStorage.setItem(`weights-guest-${monthKey}`, value);  //Attaches "guest" to the storageKey replacing "weights-userId-YYYY-mm" to "weights-guest-YYYY-mm"
+          }
+
+          localStorage.removeItem(key);                                //Remove the user key to avoid stale leftovers after logout
+        }
+      }
+    }
 
     localStorage.removeItem("wt_token");
     localStorage.removeItem("wt_refresh");
@@ -119,7 +148,7 @@ export function AuthProvider({ children }) {
   const autoLogoutTimeout = (accessToken, refreshToken) => {
     try {
       const payload = JSON.parse(atob(accessToken.split(".")[1]));  //atob decodes Base64-encoded payload
-      const expiry = payload.exp * 1000;                            //*1000 makes it in ms (expiry default is in seconds)
+      const expiry = payload.exp * 1000;                            //1000 makes it in ms (expiry default is in seconds)
       const timeout = Math.max(expiry - Date.now() - 30000, 0);     //Subtracts to get the value in ms - Calls 30s early to trigger refresh token logic (Avoiding -ve values)
       
       console.log(`[Token Timer] Access token expires at: ${new Date(expiry).toLocaleTimeString()}`);
@@ -156,7 +185,9 @@ export function AuthProvider({ children }) {
     login,                            //Login function
     logout,                           //Logout function
     loading,                          //Loading state to avoid premature rendering
-    hasMigrated                       //Migration check state
+    hasMigrated,                      //Migration check state
+    setHasMigrated,                   //Fn to update migration state
+    //registerFlushHandler              //Fn to fetch flushPendingSaves
   };
 
   //Provide the auth context to children components (Only render children when not loading).

@@ -44,6 +44,10 @@ export async function fetchAllWeightData() {
   return await getWeightJson("/weights");
 }
 
+export async function saveAllWeightData(data) {
+  return await postWeightJson("/weights", { weightData: data });
+}
+
 export async function fetchWeightData(year, month) {
   return await getWeightJson(`/weights/${year}/${month}`);
 }

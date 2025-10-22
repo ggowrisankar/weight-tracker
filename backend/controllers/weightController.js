@@ -16,10 +16,38 @@ export const getAllWeightData = async (req, res) => {
   }
 };
 
-//GET /weights/:year/:month - Fetch existing weightData per month of user
+//POST /weights - Save/Overwrite all weightData of user
+export const postAllWeightData = async (req, res) => {
+  const allWeightData = req.body.weightData;
+
+  if (!allWeightData || typeof allWeightData !== "object") {
+    return res.status(400).json({ error: "Invalid weight data format" });
+  }
+
+  try {
+    let weightDoc = await Weight.findOne({ userId: req.user.id });
+
+    if (!weightDoc) {
+      weightDoc = new Weight({ userId: req.user.id, weightData: allWeightData });
+    }
+    else {
+      weightDoc.weightData = allWeightData;
+    }
+    weightDoc.markModified("weightData");
+    await weightDoc.save();
+
+    res.json({ message: "All weight data saved successfully" });
+  }
+  catch (err) {
+    console.log("Save all weight data error: ", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+//GET /weights/:year/:month - Fetch existing weightData of user per month
 export const getWeightData = async (req, res) => {
   const { year, month } = req.params;
-  const dataKey = `${year}-${month}`;
+  const dataKey = `${year}-${String(month).padStart(2, "0")}`;
 
   try {
     let weightDoc = await Weight.findOne({ userId: req.user.id });      //Fetches the document by userId if it exists
@@ -35,14 +63,14 @@ export const getWeightData = async (req, res) => {
   }
 };
 
-//POST /weights/:year/:month - Save/Overwrite new data
+//POST /weights/:year/:month - Save/Overwrite new weightData of user per month
 export const postWeightData = async (req, res) => {
   const { year, month } = req.params;
-  const dataKey = `${year}-${month}`;
+  const dataKey = `${year}-${String(month).padStart(2, "0")}`;
   const data = req.body;
 
   if (!data || typeof data !== "object") {
-    return res.status(400).json({ error: "Invalid data format" });
+    return res.status(400).json({ error: "Invalid weight data format" });
   }
 
   try {

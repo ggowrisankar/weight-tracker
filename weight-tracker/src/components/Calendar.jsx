@@ -4,6 +4,7 @@ import { useAuth } from "../context/authContext";               //Importing cont
 import useWeights from "../hooks/useWeights";
 import useWeather from "../hooks/useWeather";
 import { chunkIntoWeeks, calculateWeeklyAverage, calculateMonthlyAverage, hasMonthEnded } from "../utils/calendarUtils";
+import { migrationHandler } from "../utils/contextUtils";
 import "../styles/Calendar.css";
 
 function Calendar () {
@@ -38,10 +39,36 @@ function Calendar () {
 
   // --- Custom hooks ---
   //useWeights hook (weights stored in localStorage):
-  const { weights, handleWeightChange, errors, draft, handleInputValidation, loading, saveStatus, handleReset } = useWeights(year, month);
+  const { weights, handleWeightChange, errors, draft, handleInputValidation, loading, saveStatus, handleReset, flushPendingSaves } = useWeights(year, month);
   const [toggleWeather, setToggleWeather] = useState(false);                          //Weather icon is only displayed if toggled
   const weather = useWeather(year, month, toggleWeather);                             //useWeather hook (weather fetched + cached)
+
+  //Get hooks from AuthProvider context:
+  const { isAuthenticated, user, logout, hasMigrated, setHasMigrated } = useAuth();
   
+  //Toggle icon for editing all days
+  const [freeEditMode, setFreeEditMode] = useState(false);
+
+  /*//On mount, pass flushPendingSaves to registerFlushHandler so it can be used in AuthProvider for logout functions.
+  useEffect(() => {
+    if (flushPendingSaves) registerFlushHandler(flushPendingSaves);
+  }, [flushPendingSaves]);                                       //Ensures only the latest version is registered 
+  */
+
+  //Force local saves and trigger migration logic on mount (Migration is only moved here so only the latest values (weights) are synced and consistent)
+  useEffect(() => {
+    const handleMigration = async () => {
+      if (isAuthenticated && !hasMigrated) {
+        console.log("[Migration] Starting migration...");
+        await flushPendingSaves();                                             //Ensure any pending local saves are flushed                                  
+        await migrationHandler(setHasMigrated, user?.id || "guest");           //Run migration logic
+        console.log("[Migration] Migration completed");
+      }
+    };
+
+    handleMigration();
+  }, [isAuthenticated]);
+
   //Previous & Next Month Navigation
 /* function goToPreviousMonth() {
     if(currentMonth === 0) {
@@ -72,11 +99,6 @@ function Calendar () {
   const weeks = chunkIntoWeeks(daysArray);
 
   const monthlyAverage = calculateMonthlyAverage(daysArray, weights);
-
-  //Toggle icon for editing all days
-  const [freeEditMode, setFreeEditMode] = useState(false);
-  
-  const { isAuthenticated, user, logout } = useAuth();        //Get isAuthenticated, user, logout from context
 
   return(
     <div>

@@ -37,6 +37,6 @@ export async function refreshAccessToken(refreshToken, logout) {
     return null;
   }
 
-  console.log("[API] Refresh endpoint succeeded: ", result);
+  console.log("[API] Refresh endpoint succeeded");
   return result;
 }

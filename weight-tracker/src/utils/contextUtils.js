@@ -1,5 +1,5 @@
-import { fetchAllWeightData, migrateWeightToServer, clearServerWeightData } from "./weightApi";
-import { clearLocalWeightData } from "./calendarUtils";
+import { fetchAllWeightData, saveAllWeightData, migrateWeightToServer, clearServerWeightData } from "./weightApi";
+import { getAllKeysForOwner, clearLocalWeightData } from "./calendarUtils";
 
 //Function to check if token is valid. (Returns boolean)
 export function isTokenValid(token) {
@@ -16,27 +16,90 @@ export function isTokenValid(token) {
   }
 };
 
-//Function to handle data migration 
-export async function migrationHandler(setHasMigrated) {
-  //Collect all local weight entires (To replace all "weights-" entries to "yyyy-mm" format so it can be sent for migration)
-  const localWeightData = {};
-  for (let i=0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
+export async function flushAllLocalToServer(userId) {
+  if (!userId) return;
 
-    if (key.startsWith("weights-")) {                         //Look for keys like "weights-yyyy-mm"
-      const monthKey = key.replace("weights-", "");           //Replace keys to "yyyy-mm"
-      const value = localStorage.getItem(key);
+  const allData = {};
+  const userKeys = getAllKeysForOwner(userId);
 
-      try {
-        localWeightData[monthKey] = JSON.parse(value);        //Store the value of old key to the new key if its not empty
-      }
-      catch {
-        console.error("Failed to parse local weight data for ", key);
-      }
+  for (const key of userKeys) {
+    const monthKey = key.replace(`weights-${userId}-`, "");
+    const value = localStorage.getItem(key);
+    try {
+      allData[monthKey] = JSON.parse(value);
+    }
+    catch {
+      console.warn("[flushAllLocalToServer] Skipped invalid data for: ", key);
     }
   }
 
-  if (Object.keys(localWeightData).length > 0 && !localStorage.getItem("wt_migrated")) {
+  if (Object.keys(allData).length === 0) {
+    console.log("[flushAllLocalToServer] No local data to upload.");
+    return;
+  }
+
+  try {
+    await saveAllWeightData(allData);
+    console.log("[flushAllLocalToServer] Full data sync complete.");
+  }
+  catch (err) {
+    console.error("[flushAllLocalToServer] Failed to sync:", err);
+  }
+};
+
+//Function to handle data migration 
+let migrationProcess = false;               //Guard to ensure migration only runs once
+export async function migrationHandler(setHasMigrated, userId) {
+  if (migrationProcess) return;             //If true, skips the function
+  migrationProcess = true;
+
+  if (localStorage.getItem("wt_migrated") === "true" || localStorage.getItem("wt_migrated") === "skip") {
+    console.log("[Migration] Already coompleted, skipping");
+    return;
+  }
+
+  const ownerId = userId || "guest";
+
+  //Check for guest (local) data if user just logged in (optional import):
+  if (ownerId !== "guest") {
+    const guestKeys = getAllKeysForOwner("guest");
+    if (guestKeys.length > 0) {
+      //const wantsImport = window.confirm("Found guest (logged-out) data from before login. Would you like to import it into your account?");
+
+      //if (wantsImport) {
+        for (const key of guestKeys) {
+          const monthKey = key.replace("weights-guest-", "");
+          const value = localStorage.getItem(key);
+
+          if (value) {
+            localStorage.setItem(`weights-${ownerId}-${monthKey}`, value);  //Attaches "userId" to the storageKey replacing "weights-guest-YYYY-mm" to "weights-userId-YYYY-mm"
+          }
+        }
+      //  console.log(`[Migration] Imported guest data → user ${ownerId}`);
+      //}
+      //else {
+      //  console.log("[Migration] Guest data skipped by user choice");
+      //}
+    }
+  }
+
+  //Collect all local weight entires for the current owner: (To replace all "weights-ownerId" entries to "yyyy-mm" format so it can be sent for migration)
+  const ownerKeys = getAllKeysForOwner(ownerId);
+  const localWeightData = {};
+  for (const key of ownerKeys) {
+    const monthKey = key.replace(`weights-${ownerId}-`, "");             //Look for keys like "weights-ownerId-yyyy-mm" & replace it with "yyyy-mm"
+    const value = localStorage.getItem(key);                             
+    try {
+      localWeightData[monthKey] = JSON.parse(value);                     //Store the value of old key to the new key if its not empty
+    }
+    catch {
+      console.error("Failed to parse local weight data for ", key);
+    }
+  }
+  
+  //Migration logic:
+  if (//Object.keys(localWeightData).length > 0 && 
+  !localStorage.getItem("wt_migrated")) {
     try {
       const serverData = await fetchAllWeightData() || {};
       const localData = localWeightData;
@@ -75,7 +138,7 @@ export async function migrationHandler(setHasMigrated) {
           break;
 
         case "4":
-          clearLocalWeightData();
+          clearLocalWeightData(ownerId);
           await clearServerWeightData();
 
           setHasMigrated(true);
@@ -95,6 +158,9 @@ export async function migrationHandler(setHasMigrated) {
     }
     catch (err) {
       console.error("Migration failed: ", err);
+    }
+    finally {
+      migrationProcess = false;               //Only set it to false after completion
     }
   }
 };
