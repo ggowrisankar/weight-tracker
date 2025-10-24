@@ -16,6 +16,7 @@ export default function useWeights(year, month) {
 
   const [loading, setLoading] = useState(false);             //For loading status while fetching data
   const [saveStatus, setSaveStatus] = useState("idle");      //For saving status while saving data
+  const [isDirty, setIsDirty] = useState(false);             //Flag to indicate user-initiated edits
 
   //Stores weight for each day
   const[weights, setWeights] = useState(() => {             //State: Store weights per day
@@ -40,6 +41,10 @@ export default function useWeights(year, month) {
   }, [storageKey]);
 */
   useEffect(() => {
+    //Reset flags so UI is in a clean state (prevents residual “Saved” message)
+    setIsDirty(false);
+    setSaveStatus("idle");
+    
     async function loadWeightData() {
       setLoading(true);
       try {
@@ -52,12 +57,8 @@ export default function useWeights(year, month) {
           if (!hasMigrated) return;                                           //Ensures stale values are not rendered (to reflect new data post migration)
 
           const serverData = await fetchWeightData(year, month + 1);
-          //Merge/Overwrite server data to local storage.
-          //if (Object.keys(serverData || {}).length > 0) {                     //Checks if serverData is an empty object
-            //Default: prefer server data
-            setWeights(serverData);
-            localStorage.setItem(storageKey, JSON.stringify(serverData));
-          //}
+          setWeights(serverData);
+          localStorage.setItem(storageKey, JSON.stringify(serverData));
         }
       }
       catch (err) {
@@ -79,17 +80,15 @@ export default function useWeights(year, month) {
     localStorage.setItem(storageKey, JSON.stringify(weights));
 
     let idleResetTimeout;
-
     if (isAuthenticated) {
-      setSaveStatus("saving");                              //When user changes weight, mark as "saving..."
-
       debounceRef.current = setTimeout(async () => {        //Async is used so await can be used for saveWeightData and in turn use try-catch
         try {
           const dataSaved = await saveWeightData(year, month + 1, weights);
           
-          if (dataSaved.message === "Data saved") {
+          if (isDirty && dataSaved.message === "Data saved") {  //isDirty ensures status are changed only if input has been triggered onBlur
             setSaveStatus("saved");
             idleResetTimeout = setTimeout(() => setSaveStatus("idle"), 1500);  //“saved” flashes for 2 seconds, then hides (Reset back to idle after 2 second)
+            setIsDirty(false);
           }
         }
         catch (err) {
@@ -171,6 +170,10 @@ export default function useWeights(year, month) {
   };
 
   const handleInputValidation = (day, value) => {
+    //Status flags are set here since this is the true user input path (where valid values are handled)
+    setIsDirty(true);
+    setSaveStatus("saving");
+
     const inputNumericValue = parseFloat(value);
     //Case 1: Handle empty input (via backspacing) & Valid weight range (between 30–300 kg):
     if (value === "" || (!isNaN(inputNumericValue) && inputNumericValue >= 30 && inputNumericValue <= 300)) {
