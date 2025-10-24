@@ -94,7 +94,7 @@ export const postWeightData = async (req, res) => {
 
 //POST /weights/migrate - Migrate and sync pre-login data to the user db.
 export const migrateWeightData = async (req, res) => {
-  const weightData = req.body.data;                            //body eg: { "2025-9": { "1": 65, "2": 64.5 }, ... }
+  const weightData = req.body.data || {};                      //body eg: { "2025-9": { "1": 65, "2": 64.5 }, ... }
   const overwrite = req.body.overwrite;                        //Get the overwrite flag from frontend
 
   if (!weightData || typeof weightData !== "object") {
@@ -109,29 +109,27 @@ export const migrateWeightData = async (req, res) => {
       weightDoc = new Weight({ userId, weightData });       //If no document exists for userId, create new doc with the weightData for the same userId
     }
     else {
-      if (overwrite && Object.keys(weightData).length === 0) {
-        weightDoc.weightData = {};
+      if (overwrite) {
+        weightDoc.weightData = {};                          //Always clear all months if overwrite is true
       }
-      else {
-        //Merge: server keeps existing months unless overwritten by local data.
-        /*Loop through each [key, value] pair in weightData using Object.entries():
-        Object.entries(weightData) > ["2025-9", { "1": 65, "2": 64.5 }] ; key = "2025-9", monthData = { "1": 65, "2": 64.5 }*/
-        for (const [key, monthData] of Object.entries(weightData)) {
-          if (overwrite) {
-            weightDoc.weightData[key] = monthData;              //Full replacement of monthKey with either server/local data
-          }
-          else {
-            weightDoc.weightData[key] = {
-              ...weightDoc.weightData[key],
-              ...monthData                                      //Local values overwrite the server for same days
-            };
-          }
+      //Merge: server keeps existing months unless overwritten by local data. (Loop through payload months (if any) and add/merge)
+      /*Loop through each [key, value] pair in weightData using Object.entries():
+      Object.entries(weightData) > ["2025-9", { "1": 65, "2": 64.5 }] ; key = "2025-9", monthData = { "1": 65, "2": 64.5 }*/
+      for (const [key, monthData] of Object.entries(weightData)) {
+        if (overwrite) {
+          weightDoc.weightData[key] = monthData;              //Full replacement of monthKey with either server/local data
         }
-       // weightDoc.markModified("weightData");
+        else {
+          weightDoc.weightData[key] = {
+            ...weightDoc.weightData[key],
+            ...monthData                                      //Local values overwrite the server for same days
+          };
+        }
       }
     }
     weightDoc.markModified("weightData");
     await weightDoc.save();                                 //Explicitly call it to save the new/updated weight document to the database
+    
     res.json({ message: "Migrated data successfully", weightData: weightDoc.weightData });
   }
   catch (err) {

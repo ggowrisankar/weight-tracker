@@ -98,8 +98,7 @@ export async function migrationHandler(setHasMigrated, userId) {
   }
   
   //Migration logic:
-  if (//Object.keys(localWeightData).length > 0 && 
-  !localStorage.getItem("wt_migrated")) {
+  if (!localStorage.getItem("wt_migrated")) {
     try {
       const serverData = await fetchAllWeightData() || {};
       const localData = localWeightData;

@@ -106,7 +106,7 @@ export default function useWeights(year, month) {
     } 
   }, [weights, year, month, isAuthenticated]);
 
-  //Flushing to manually force a save and clear any pending debounce (during migration/logout/reset data...)
+  //Flushing to manually force a save and clear any pending debounce (during navigation/migration/reset data...)
   //(useCallback memoizes fn to avoid recreating it unnecessarily - doesn't re-render unless dependencies change)
   const flushPendingSaves = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -227,7 +227,7 @@ export default function useWeights(year, month) {
 
     try {
       if (isAuthenticated) {
-        await flushPendingSaves();                                            //Flush first
+        await flushPendingSaves();                                            //Flush first so stale data won't popup after debounce
         await clearServerWeightData();
       }
     }
@@ -236,6 +236,7 @@ export default function useWeights(year, month) {
     }
 
     setWeights({});
+    setDraft({});
     clearLocalWeightData();                                                  //Clear ALL stored weight keys (guest + any user keys)
   }; 
 

@@ -55,7 +55,7 @@ function Calendar () {
   }, [flushPendingSaves]);                                       //Ensures only the latest version is registered 
   */
 
-  //Force local saves and trigger migration logic on mount (Migration is only moved here so only the latest values (weights) are synced and consistent)
+  /*//Force local saves and trigger migration logic on mount (Migration is only moved here so only the latest values (weights) are synced and consistent)
   useEffect(() => {
     const handleMigration = async () => {
       if (isAuthenticated && !hasMigrated) {
@@ -68,6 +68,7 @@ function Calendar () {
 
     handleMigration();
   }, [isAuthenticated]);
+*/
 
   //Previous & Next Month Navigation
 /* function goToPreviousMonth() {
@@ -88,10 +89,12 @@ function Calendar () {
   }
 */
 
-  function goToPreviousMonth() {
+  async function goToPreviousMonth() {
+    await flushPendingSaves();                //Added to force previous saves while navigating
     setToday(new Date(year, month - 1, 1));   //(year, month, day)
   }
-  function goToNextMonth() {
+  async function goToNextMonth() {
+    await flushPendingSaves();
     setToday(new Date(year, month + 1, 1));
   }
 

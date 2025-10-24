@@ -88,20 +88,25 @@ export function AuthProvider({ children }) {
   }, []);
 
   //Function to log in to the user and store token and user data to localStorage.
-  const login = (accessToken, refreshToken, userData) => {
+  const login = async (accessToken, refreshToken, userData) => {
     if (tokenExpiryTimeout) clearTimeout(tokenExpiryTimeout);       //Clear any existing token expiry timeout to avoid multiple logout timers
 
     localStorage.setItem("wt_token", accessToken);
     localStorage.setItem("wt_refresh", refreshToken);
     localStorage.setItem("wt_user", JSON.stringify(userData));
 
-    setUser(userData);                //Update user state
-
-    //Token expiry auto-logout logic:
-    autoLogoutTimeout(accessToken, refreshToken);
-
     //Data Migration Handler:
-    //migrationHandler(setHasMigrated);     //Moved migration to Calendar for better robustability (always runs against the most up-to date server state)
+    try {
+      console.log("[Auth.login] Running migration before exposing user...");
+      await migrationHandler(setHasMigrated, userData.id);
+      console.log("[Auth.login] Migration completed successfully");
+    }
+    catch (err) {
+      console.error("[Auth.login] Migration failed:", err);
+    }
+
+    setUser(userData);                               //Update user state
+    autoLogoutTimeout(accessToken, refreshToken);    //Token expiry auto-logout logic
   };
 
   //Function to log out of the user and remove token and user data from localStorage.
