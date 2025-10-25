@@ -115,8 +115,9 @@ export function AuthProvider({ children }) {
 
     //if (flushCallback) await flushCallback();                   //Flush before logout
     if (user?.id) {
+      localStorage.setItem("lastLoggedInUserId", user.id);        //To remember the last user so migration prompt can be skipped if the same user logs back in
       try {
-        await flushAllLocalToServer(user.id);                       //Flush all data to server before logout
+        await flushAllLocalToServer(user.id);                     //Flush all data to server before logout
       }
       catch (err) {
         console.error("[Auth] flushAllLocalToServer failed: ", err);

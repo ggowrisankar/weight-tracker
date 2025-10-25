@@ -31,7 +31,7 @@ export async function postLogin(req, res) {
       { expiresIn: "7d" }
     );
 
-    res.json({ accessToken, refreshToken, user: { id: user._id, email: user.email } });
+    res.json({ success: true, accessToken, refreshToken, user: { id: user._id, email: user.email } });
   }
   catch (err) {
     console.error("Login error: ",err.message);

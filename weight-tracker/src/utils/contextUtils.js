@@ -102,55 +102,64 @@ export async function migrationHandler(setHasMigrated, userId) {
     try {
       const serverData = await fetchAllWeightData() || {};
       const localData = localWeightData;
-
-      //Normalize both objects before comparing:
-      const normalizedServer = normalizeData(stripEmptyMonthKeys(serverData));
-      const normalizedLocal = normalizeData(stripEmptyMonthKeys(localData));
-
-      const compareData = JSON.stringify(normalizedServer) === JSON.stringify(normalizedLocal);
-      if (compareData) {
-        console.log("No differences found. Skipping migration");
-        localStorage.setItem("wt_migrated", "skip");
-        return;
-      }
-
-      const userInput = window.prompt(
-        `We found differences between your local and server weight data.\n\n` +
-        `Choose how to proceed:\n` +
-        `1 → Use local data only (overwrite server)\n` +
-        `2 → Use server data only (discard local changes)\n` +
-        `3 → Merge both (local overwrites matching days) [default]\n` +
-        `4 → Start with a clean slate (this will PERMANENTLY DELETE all existing data) \n\n` +
-        `Enter 1, 2, 3 or 4:`
-      );
-
-      const choice = userInput?.trim() || "3";        //Fallback to merge (3/default) by default (trim used to clear out whitespaces for avoiding logical errors)
       let finalMergedData;
 
-      switch (choice) {
-        case "1":
-          finalMergedData = localData;
-          break;
-
-        case "2":
-          finalMergedData = serverData;
-          break;
-
-        case "4":
-          clearLocalWeightData(ownerId);
-          await clearServerWeightData();
-
-          setHasMigrated(true);
-          localStorage.setItem("wt_migrated", "true");
-          return;
-
-        default :
-          finalMergedData = mergeWeightData(serverData, localData);
-          break;
+      const lastUserId = localStorage.getItem("lastLoggedInUserId");
+      if (lastUserId === userId) {    //Skip migration prompts and auto merge if the last user logged back in again
+        console.log("[Migration] Skipping Prompts: Merge done automatically since same user logged back in");
+        finalMergedData = mergeWeightData(serverData, localData);
+        migrateWeightToServer(finalMergedData);
       }
+      else {                         //Trigger migration prompts if the last user and the current user is different
+        console.log("[Migration] Triggering Prompts: since last user differs from current");
+        //Normalize both objects before comparing:
+        const normalizedServer = normalizeData(stripEmptyMonthKeys(serverData));
+        const normalizedLocal = normalizeData(stripEmptyMonthKeys(localData));
 
-      const shouldOverwrite = (choice === "1" || choice === "2");         //Overwrite flag to pass to the backend, to make sure local/server fully replaces data post updation
-      await migrateWeightToServer(finalMergedData, shouldOverwrite);
+        const compareData = JSON.stringify(normalizedServer) === JSON.stringify(normalizedLocal);
+        if (compareData) {
+          console.log("[Migration] Skipping: No differences found between local and server data");
+          localStorage.setItem("wt_migrated", "skip");
+          return;
+        }
+
+        const userInput = window.prompt(
+          `New user session found.` +
+          `We found differences between your local and server weight data.\n\n` +
+          `Choose how to proceed:\n` +
+          `1 → Use local data only (overwrite server)\n` +
+          `2 → Use server data only (discard local changes)\n` +
+          `3 → Merge both (local overwrites matching days) [default]\n` +
+          `4 → Start with a clean slate (this will PERMANENTLY DELETE all existing data) \n\n` +
+          `Enter 1, 2, 3 or 4:`
+        );
+
+        const choice = userInput?.trim() || "3";        //Fallback to merge (3/default) by default (trim used to clear out whitespaces for avoiding logical errors)
+        switch (choice) {
+          case "1":
+            finalMergedData = localData;
+            break;
+
+          case "2":
+            finalMergedData = serverData;
+            break;
+
+          case "4":
+            clearLocalWeightData(ownerId);
+            await clearServerWeightData();
+
+            setHasMigrated(true);
+            localStorage.setItem("wt_migrated", "true");
+            return;
+
+          default :
+            finalMergedData = mergeWeightData(serverData, localData);
+            break;
+        }
+
+        const shouldOverwrite = (choice === "1" || choice === "2");         //Overwrite flag to pass to the backend, to make sure local/server fully replaces data post updation
+        await migrateWeightToServer(finalMergedData, shouldOverwrite);
+      }
 
       setHasMigrated(true);
       localStorage.setItem("wt_migrated", "true");                        //Migration flag to avoid re-running after every login

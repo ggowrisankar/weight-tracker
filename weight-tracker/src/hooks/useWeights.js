@@ -41,7 +41,7 @@ export default function useWeights(year, month) {
   }, [storageKey]);
 */
   useEffect(() => {
-    //Reset flags so UI is in a clean state (prevents residual “Saved” message)
+    //Reset flags so UI is in a clean state, prevents residual “Saved” message (Not necessary but safeguard)
     setIsDirty(false);
     setSaveStatus("idle");
     
