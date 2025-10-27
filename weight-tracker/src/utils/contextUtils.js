@@ -96,7 +96,7 @@ export async function migrationHandler(setHasMigrated, userId) {
       console.error("Failed to parse local weight data for ", key);
     }
   }
-  
+
   //Migration logic:
   if (!localStorage.getItem("wt_migrated")) {
     try {
@@ -108,13 +108,25 @@ export async function migrationHandler(setHasMigrated, userId) {
       if (lastUserId === userId) {    //Skip migration prompts and auto merge if the last user logged back in again
         console.log("[Migration] Skipping Prompts: Merge done automatically since same user logged back in");
         finalMergedData = mergeWeightData(serverData, localData);
-        migrateWeightToServer(finalMergedData);
+        const resMig = await migrateWeightToServer(finalMergedData);
+        pasteToLocalStorage(ownerId, resMig.weightData);
       }
       else {                         //Trigger migration prompts if the last user and the current user is different
         console.log("[Migration] Triggering Prompts: since last user differs from current");
         //Normalize both objects before comparing:
         const normalizedServer = normalizeData(stripEmptyMonthKeys(serverData));
         const normalizedLocal = normalizeData(stripEmptyMonthKeys(localData));
+        
+        //Directly logs in the user without migration prompt if they're starting with a clean UI with no weight inputs
+        if (Object.keys(normalizedLocal).length === 0) {
+          console.log("[Migration] Skipping and directly loading the user data since the user logged in with empty UI");
+          finalMergedData = serverData;
+          const resMig = await migrateWeightToServer(finalMergedData);
+          pasteToLocalStorage(ownerId, resMig.weightData);
+          setHasMigrated(true);
+          localStorage.setItem("wt_migrated", "true");
+          return;
+        }
 
         const compareData = JSON.stringify(normalizedServer) === JSON.stringify(normalizedLocal);
         if (compareData) {
@@ -124,7 +136,7 @@ export async function migrationHandler(setHasMigrated, userId) {
         }
 
         const userInput = window.prompt(
-          `New user session found.` +
+          `New user session found.\n` +
           `We found differences between your local and server weight data.\n\n` +
           `Choose how to proceed:\n` +
           `1 → Use local data only (overwrite server)\n` +
@@ -158,7 +170,8 @@ export async function migrationHandler(setHasMigrated, userId) {
         }
 
         const shouldOverwrite = (choice === "1" || choice === "2");         //Overwrite flag to pass to the backend, to make sure local/server fully replaces data post updation
-        await migrateWeightToServer(finalMergedData, shouldOverwrite);
+        const resMig = await migrateWeightToServer(finalMergedData, shouldOverwrite);
+        pasteToLocalStorage(ownerId, resMig.weightData);
       }
 
       setHasMigrated(true);
@@ -216,4 +229,26 @@ const mergeWeightData = (server = {}, local = {}) => {
   }
 
   return merged;                     //Return the final merged weight data object
+};
+
+//Function to pass the migrated full weightData to localStorage for display (So the server values are still in the UI even if logged out before rendering those months)
+const pasteToLocalStorage = (ownerId, weightData) => {
+  const cleanWeightData = stripEmptyMonthKeys(weightData);
+
+  if (Object.keys(cleanWeightData).length === 0) {
+    const staleServerKeys = getAllKeysForOwner(ownerId);
+    for (const key of staleServerKeys) {
+      localStorage.removeItem(key);
+    }
+
+    const staleLocalKeys = getAllKeysForOwner("guest");
+    for (const key of staleLocalKeys) {
+      localStorage.removeItem(key);
+    }
+  }
+  else {
+    for (const [key, value] of Object.entries(cleanWeightData)) {
+      localStorage.setItem(`weights-${ownerId}-${key}`, JSON.stringify(value));
+    }
+  }
 };
