@@ -138,6 +138,7 @@ export const migrateWeightData = async (req, res) => {
   }
 };
 
+//POST /weights/reset - Reset data for the user db.
 export const resetWeightData = async (req, res) => {
   try {
     let weightDoc = await Weight.findOne({ userId: req.user.id });

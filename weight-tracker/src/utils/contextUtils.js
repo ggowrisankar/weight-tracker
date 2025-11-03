@@ -158,7 +158,8 @@ export async function migrationHandler(setHasMigrated, userId) {
 
           case "4":
             clearLocalWeightData(ownerId);
-            await clearServerWeightData();
+            const resCleanSlate = await clearServerWeightData();
+            pasteToLocalStorage(ownerId, resCleanSlate.data);
 
             setHasMigrated(true);
             localStorage.setItem("wt_migrated", "true");
