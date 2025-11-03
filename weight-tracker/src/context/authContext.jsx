@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { isTokenValid, migrationHandler, flushAllLocalToServer } from "../utils/contextUtils";
 import { refreshAccessToken } from "../utils/userApi";
 import { getAllKeysForOwner } from "../utils/calendarUtils";
+import { apiFetch } from "../api";
 
 const AuthContext = createContext();                  //Creates a context for authentication
 
@@ -184,6 +185,27 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Function to refresh the current user data from the backend
+  const refreshUser = async () => {
+    try {
+      const res = await apiFetch("/auth/me");
+      if (res.user) {
+        setUser(res.user);
+        localStorage.setItem("wt_user", JSON.stringify(res.user));
+      }
+    }
+    catch (err) {
+      console.error("Failed to fetch/refresh latest user data: ", err);
+    }
+  };
+  //Auto-refresh on tab focus
+  useEffect(() => {
+    const handleFocus = async () => await refreshUser();
+    window.addEventListener("focus", handleFocus);                     //The "focus" event fires whenever the user switches back to this browser tab
+
+    return () => window.removeEventListener("focus", handleFocus);     //Cleanup function: remove the event listener when the component unmounts
+  }, []);
+
   //Object containing auth-related values and functions to be shared.
   const value = {
     user,                             //Current user state
@@ -193,6 +215,7 @@ export function AuthProvider({ children }) {
     loading,                          //Loading state to avoid premature rendering
     hasMigrated,                      //Migration check state
     setHasMigrated,                   //Fn to update migration state
+    refreshUser
     //registerFlushHandler              //Fn to fetch flushPendingSaves
   };
 

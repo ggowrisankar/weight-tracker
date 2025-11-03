@@ -16,7 +16,7 @@ export const authMiddleware = (req, res ,next) => {
   const token = authHeader.split(" ")[1];                           //Gets the token string
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);      //Fetches the payload of token after verification is success (payload is created in loginController.js)
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);      //Fetches the payload of token after verification is success (payload is created in the login section)
     req.user = { id: decoded.id, email: decoded.email };            //Attach user info to the request
     next();                                                         //Pass control to the next middleware or route handler
   }

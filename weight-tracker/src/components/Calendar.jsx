@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";               //Importing context
 import useWeights from "../hooks/useWeights";
 import useWeather from "../hooks/useWeather";
 import { chunkIntoWeeks, calculateWeeklyAverage, calculateMonthlyAverage, hasMonthEnded } from "../utils/calendarUtils";
 import { migrationHandler } from "../utils/contextUtils";
+import { apiFetch } from "../api";
+import { CheckCircle, AlertCircle } from "lucide-react";
 import "../styles/Calendar.css";
 
 function Calendar () {
@@ -48,6 +50,22 @@ function Calendar () {
   
   //Toggle icon for editing all days
   const [freeEditMode, setFreeEditMode] = useState(false);
+
+  //Utility hooks for Email-Verification link:
+  const [sending, setSending] = useState(false);
+  const [message, setMessage] = useState("");
+  const [showEmailTooltip, setShowEmailTooltip] = useState(false);
+
+  const emailTooltipRef = useRef();
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (emailTooltipRef.current && !emailTooltipRef.current.contains(e.target)) {
+        setShowEmailTooltip(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   /*//On mount, pass flushPendingSaves to registerFlushHandler so it can be used in AuthProvider for logout functions.
   useEffect(() => {
@@ -103,6 +121,19 @@ function Calendar () {
 
   const monthlyAverage = calculateMonthlyAverage(daysArray, weights);
 
+  async function handleResendVerification() {
+    try {
+      setSending(true);
+      const res = await apiFetch("/auth/send-verification", { method: "POST" });
+      if(res?.success) setMessage("A verification link has been sent to your email");
+    } catch {
+      setMessage("Failed to send verification link");
+    }
+    finally {
+      setSending(false);
+    }
+  }
+
   return(
     <div>
       {/* --HEADERS/TOGGLE BUTTONs-- */}
@@ -126,7 +157,32 @@ function Calendar () {
           <nav>
             {isAuthenticated ? (
               <div>
-                <span>Logged in as <strong>{(user.email).split("@")[0]}</strong>&nbsp;&nbsp;</span>
+                <span>
+                  Logged in as <strong>{(user.email).split("@")[0]}</strong>&nbsp;&nbsp;
+                  {user.verified ? (
+                    <div className="verified-status" title="Email verified">
+                      <CheckCircle className="icon-green" />
+                    </div>
+                  ) : (
+                    <div className="unverified-status" title="Email not verified">
+                      <AlertCircle
+                        className="icon-red"
+                        onClick={() => setShowEmailTooltip((prev) => !prev)}
+                      />
+                      {showEmailTooltip && (
+                        <div ref={emailTooltipRef} className="email-tooltip visible">
+                          <div>{sending ? "Sending..." : "Email not verified yet"}</div>
+                          {!sending && (
+                            <button className="verify-button" onClick={handleResendVerification}>
+                              Send Verification Link
+                            </button>
+                          )}
+                          {message && <p className="message">{message}</p>}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </span>
                 <button
                   onClick={logout}
                   title="Logout"

@@ -1,7 +1,7 @@
 import express from "express";
-import { postSignUp } from "../controllers/signUpController.js";
-import { postLogin } from "../controllers/loginController.js";
-import { refreshAccessToken } from "../controllers/refreshController.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
+import { postSignUp, postLogin, refreshAccessToken, getUserDetails } from "../controllers/authController.js";
+import { sendVerification, checkVerification } from "../controllers/verificationController.js";
 
 const router = express.Router();
 
@@ -9,5 +9,9 @@ const router = express.Router();
 router.post("/signup", postSignUp);     
 router.post("/login", postLogin);
 router.post("/refresh", refreshAccessToken);
+router.get("/me", authMiddleware, getUserDetails);
+
+router.post("/send-verification", authMiddleware, sendVerification);
+router.get("/verify/:token", checkVerification);
 
 export default router;

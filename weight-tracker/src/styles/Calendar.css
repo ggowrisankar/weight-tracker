@@ -197,3 +197,81 @@
   visibility: visible;            /* make tooltip visible when parent has .show */
   opacity: 1;                     /* fade-in */
 }
+
+/* EMAIL VERIFICATION CSS */
+/* General layout styles */
+.verified-status,
+.unverified-status {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem; /* Tailwind gap-1 */
+  position: relative;
+}
+
+/* Icon colors and sizing */
+.icon-green {
+  color: #22c55e; /* Tailwind text-green-500 */
+  width: 1.25rem; /* 20px (w-5) */
+  height: 1.25rem;
+}
+
+.icon-red {
+  color: #ef4444; /* Tailwind text-red-500 */
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+}
+
+/* Tooltip */
+.email-tooltip {
+  position: absolute;
+  top: 1.5rem; /* roughly top-6 */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1f2937; /* Tailwind bg-gray-800 */
+  color: white;
+  font-size: 0.75rem; /* text-xs */
+  border-radius: 0.375rem; /* rounded-md */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  width: 11rem; /* w-44 */
+  pointer-events: none;
+}
+
+.email-tooltip.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(2px);
+}
+
+/* Show tooltip on hover */
+.unverified-status:hover .email-tooltip {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Verification button */
+.verify-button {
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #3b82f6; /* Tailwind bg-blue-500 */
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.verify-button:hover {
+  background-color: #2563eb; /* Tailwind hover:bg-blue-600 */
+}
+
+/* Message text */
+.message {
+  font-size: 0.625rem; /* text-[10px] */
+  margin-top: 0.25rem;
+}
