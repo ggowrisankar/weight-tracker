@@ -171,7 +171,7 @@ function Calendar () {
                       />
                       {showEmailTooltip && (
                         <div ref={emailTooltipRef} className="email-tooltip visible">
-                          <div>{sending ? "Sending..." : "Email not verified yet"}</div>
+                          <div>{sending ? "Sending..." : "Please verify your email to further secure your account"}</div>
                           {!sending && (
                             <button className="verify-button" onClick={handleResendVerification}>
                               Send Verification Link

@@ -2,6 +2,7 @@ import express from "express";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { postSignUp, postLogin, refreshAccessToken, getUserDetails } from "../controllers/authController.js";
 import { sendVerification, checkVerification } from "../controllers/verificationController.js";
+import { requestPasswordReset, resetPassword } from "../controllers/passwordResetController.js";
 
 const router = express.Router();
 
@@ -13,5 +14,8 @@ router.get("/me", authMiddleware, getUserDetails);
 
 router.post("/send-verification", authMiddleware, sendVerification);
 router.get("/verify/:token", checkVerification);
+
+router.post("/request-password-reset", requestPasswordReset);
+router.post("/reset-password/:token", resetPassword);
 
 export default router;

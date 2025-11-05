@@ -8,6 +8,8 @@ import Calendar from './components/Calendar';
 import Login from './pages/login';
 import Signup from './pages/signup';
 import VerifyPage from './pages/verifyPage';
+import ForgotPassword from './pages/forgotPassword';
+import ResetPassword from './pages/resetPassword';
 
 function App() {
   //BrowserRouter - Wraps the app and enables routing using browser history
@@ -21,6 +23,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify" element={<VerifyPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
