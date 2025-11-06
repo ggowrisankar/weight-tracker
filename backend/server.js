@@ -3,6 +3,7 @@ dotenv.config();                                        //Loading variables from
 import express from "express";                          //Framework for creating web servers
 import cors from "cors";                                //Importing CORS to bypass restrictions
 import mongoose from "mongoose";                        //Importing mongoose library to interact with MongoDB
+import { globalLimiter } from "./utils/rateLimiters.js";
 import weatherRoutes from "./routes/weatherRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import weightRoutes from "./routes/weightRoutes.js";
@@ -22,10 +23,11 @@ const app = express();                              //Our server
 const PORT = process.env.PORT || 3000;              //Using available ports after checking in env. Server will be available at https://localhost:3000 as default.
 
 app.use(express.json());                            //Middleware to parse JSON
-
 //app.use(express.urlencoded({ extended: true }));  //For accepting URL-encoded form data (form submissions)
 
 app.use(cors());                                    //Now the server will be able to run anywhere without having to be inside the local url. (Keeping it open for now)
+
+app.use(globalLimiter);                             //Apply global rate limiter to all routes (In prod, 429 error should be handled gracefully in frontend)
 
 /*//Test User code
 import bcrypt from "bcrypt";
@@ -46,9 +48,7 @@ testUser();*/
 
 //Mount routes - prefix all paths inside weatherRoutes with /weather
 app.use("/weather", weatherRoutes);                 //For any request starting with /weather, use the router imported from weatherRoutes.js
-
 app.use("/auth", authRoutes);                       //Auth requests
-
 app.use("/weights", authMiddleware, weightRoutes);  //Mount middleware once it hits the /weights request before redirecting to weightRoutes
 
 //Starts the server

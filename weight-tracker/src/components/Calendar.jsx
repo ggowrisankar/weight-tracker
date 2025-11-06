@@ -124,8 +124,14 @@ function Calendar () {
   async function handleResendVerification() {
     try {
       setSending(true);
+      setMessage("");
       const res = await apiFetch("/auth/send-verification", { method: "POST" });
-      if(res?.success) setMessage("A verification link has been sent to your email");
+      if(res?.success) {
+        setMessage("A verification link has been sent to your email");
+      }
+      else {
+        setMessage(res?.message || "Something went wrong. Please try again.");
+      }      
     } catch {
       setMessage("Failed to send verification link");
     }

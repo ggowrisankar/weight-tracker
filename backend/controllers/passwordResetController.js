@@ -12,6 +12,11 @@ export async function requestPasswordReset(req, res) {
     //Always respond success to prevent email enumeration
     if (!user) return res.status(200).json({ message: "If an account exists, a reset link has been sent to your email." });
 
+    //Prevents multiple request triggers for the same user within the token validity window (10 mins)
+    if (user.resetPasswordToken && user.resetPasswordExpires > Date.now()) {
+      return res.status(429).json({ message: "Password reset already requested. Please check your email or try again later." });
+    }
+
     //Require verified users only [Skipping since it might also block legitimate users from ever accessing their account if pw is lost]
     //if (!user.isVerified) return res.status(400).json({ message: "Please verify your email before resetting password." });
 

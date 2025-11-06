@@ -1,5 +1,6 @@
 import express from "express";
 import { authMiddleware } from "../middleware/authMiddleware.js";
+import { verificationLimiter, resetPasswordLimiter  } from "../utils/rateLimiters.js";
 import { postSignUp, postLogin, refreshAccessToken, getUserDetails } from "../controllers/authController.js";
 import { sendVerification, checkVerification } from "../controllers/verificationController.js";
 import { requestPasswordReset, resetPassword } from "../controllers/passwordResetController.js";
@@ -12,10 +13,10 @@ router.post("/login", postLogin);
 router.post("/refresh", refreshAccessToken);
 router.get("/me", authMiddleware, getUserDetails);
 
-router.post("/send-verification", authMiddleware, sendVerification);
+router.post("/send-verification", authMiddleware, verificationLimiter, sendVerification);
 router.get("/verify/:token", checkVerification);
 
-router.post("/request-password-reset", requestPasswordReset);
+router.post("/request-password-reset", resetPasswordLimiter, requestPasswordReset);
 router.post("/reset-password/:token", resetPassword);
 
 export default router;
