@@ -11,7 +11,7 @@ export const globalLimiter = rateLimit({
 export const verificationLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,       //10mins
   max: 3,                         //Limit each IP to 3 requests per 10mins
-  message: { message: "Too many verification requests. Please try again later." },
+  message: { message: "Too many verification requests attempted. Please try again later." },
   standardHeaders: true,          //Includes RateLimit-headers (Limit, Remaining, Reset) in responses to inform clients how many requests remain and when the limit resets
   legacyHeaders: false            //Disable old legacy headers (X-RateLimit-Limit, X-RateLimit-Remaining, etc.)
 });
@@ -20,7 +20,7 @@ export const verificationLimiter = rateLimit({
 export const resetPasswordLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,       //10mins
   max: 5,                         //Limit each IP to 5 requests per 10mins
-  message: { message: "Too many password reset requests. Please try again later." },
+  message: { message: "Too many password reset requests attempted. Please try again later." },
   standardHeaders: true,          //Includes RateLimit-headers (Limit, Remaining, Reset) in responses to inform clients how many requests remain and when the limit resets
   legacyHeaders: false            //Disable old legacy headers (X-RateLimit-Limit, X-RateLimit-Remaining, etc.)
 });

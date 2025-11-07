@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";               //Importing context
 import useWeights from "../hooks/useWeights";
 import useWeather from "../hooks/useWeather";
 import { chunkIntoWeeks, calculateWeeklyAverage, calculateMonthlyAverage, hasMonthEnded } from "../utils/calendarUtils";
-import { migrationHandler } from "../utils/contextUtils";
 import { apiFetch } from "../api";
-import { CheckCircle, AlertCircle } from "lucide-react";
+import { CalendarToolbar, CalendarHeader, SaveStatus, WeekdaysRow, CalendarGrid, MonthlyAverage } from "./CalendarComponents";  //Imports automatically from index.js
 import "../styles/Calendar.css";
 
 function Calendar () {
@@ -140,220 +138,65 @@ function Calendar () {
     }
   }
 
-  return(
-    <div>
-      {/* --HEADERS/TOGGLE BUTTONs-- */}
-      <header>
-        <div className="toggle-button">
-          <button 
-            onClick={() => setFreeEditMode(prev => !prev)}    //Using prev is the best practice always, so quick rendering may not affect incorrect values.
-            title="Toggle Edit Mode"
-            className= {`settings-btn ${freeEditMode ? "active" : ""}`}
-          >
-            ✎
-          </button>
+  return (
+    <div className="calendar-container">
+      <CalendarToolbar
+        isAuthenticated={isAuthenticated}
+        user={user}
+        showEmailTooltip={showEmailTooltip}
+        setShowEmailTooltip={setShowEmailTooltip}
+        emailTooltipRef={emailTooltipRef}
+        sending={sending}
+        handleResendVerification={handleResendVerification}
+        message={message}
+        logout={logout}
+        freeEditMode={freeEditMode}
+        setFreeEditMode={setFreeEditMode}
+        handleReset={handleReset}
+        toggleWeather={toggleWeather}
+        setToggleWeather={setToggleWeather}
+      />
 
-          <button
-            onClick={handleReset}
-            title="Reset weights"
-            className= {"reset-btn"}
-          >
-            🗑
-          </button>
-          <nav>
-            {isAuthenticated ? (
-              <div>
-                <span>
-                  Logged in as <strong>{(user.email).split("@")[0]}</strong>&nbsp;&nbsp;
-                  {user.verified ? (
-                    <div className="verified-status" title="Email verified">
-                      <CheckCircle className="icon-green" />
-                    </div>
-                  ) : (
-                    <div className="unverified-status" title="Email not verified">
-                      <AlertCircle
-                        className="icon-red"
-                        onClick={() => setShowEmailTooltip((prev) => !prev)}
-                      />
-                      {showEmailTooltip && (
-                        <div ref={emailTooltipRef} className="email-tooltip visible">
-                          <div>{sending ? "Sending..." : "Please verify your email to further secure your account"}</div>
-                          {!sending && (
-                            <button className="verify-button" onClick={handleResendVerification}>
-                              Send Verification Link
-                            </button>
-                          )}
-                          {message && <p className="message">{message}</p>}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </span>
-                <button
-                  onClick={logout}
-                  title="Logout"
-                  className= {"logout-btn"}
-                >
-                  ⏻
-                </button>
-              </div>
-              ) : (
-                <Link to="/login" className="login-link">Login / Signup</Link>
-            )}
-          </nav>
-
-          <button
-            onClick={() => {
-              setToggleWeather(prev => !prev)
-              //const weather = useWeather(year, month);  //Invalid Hook Call. Hooks shouldn't be called conditionally or in a callback. It should be initialized first.
-            }}
-            title="Toggle Weather Mode"
-            className= {`weather-btn ${toggleWeather ? "active" : ""}`}
-          >
-            🌤
-          </button>
-        </div>
-      </header>
       {isAuthenticated && (
-        <div className="save-status">
-          {saveStatus === "saving" && <span>💾 Saving...</span>}
-          {saveStatus === "saved" && <span className="saved">✅ Saved</span>}
-          {saveStatus === "error" && <span className="error">⚠️ Save failed</span>}
-        </div>
+        <SaveStatus saveStatus={saveStatus} loading={loading} />
       )}
-      {isAuthenticated && loading && (
-        <div className="save-status">
-          <div className="loading-text">Loading data...</div>
-        </div>
-      )}
-      {/* --MONTH + YEAR TITLE WITH NAVIGATION BUTTONS-- */}
-      <div className="calendar-header">
-        <button onClick={goToPreviousMonth} title="Previous">🡨</button>
 
-        {/*<h2>{monthName[currentMonth]}, {currentYear}</h2>*/}
-        <h2>{monthName[month]}, {year}</h2>
-        {/*<h2>{new Date(currentYear, currentMonth).toLocaleString("default", { month: "long" })} {currentYear}</h2>*/}
-        {/*<h2>{today.toLocaleString("default", {month: "long"})} {year}</h2>*/}  {/* Uses system local settings */}
+      <CalendarHeader
+        month={month}
+        year={year}
+        monthName={monthName}
+        goToPreviousMonth={goToPreviousMonth}
+        goToNextMonth={goToNextMonth}
+      />
 
-        <button onClick={goToNextMonth} title="Next">🡪</button>
-      </div>
-      
-      {/* --WEEKDAY HEADERS-- */}
-      <div className="weekdays">
-        {weekDays.map((day) => (
-          <div key={day}>    
-            {day}
-          </div>
-        ))}
-        <div>Average</div>                                  {/* Appending Avg column */}
-      </div>
+      <WeekdaysRow weekDays={weekDays} />
 
-      {/* --WEEKLY GRID-- */}
-      <div>
-        {weeks.map((week, wIndex) => (                    //Rendering week chunks one by one
-          <div
-            key={wIndex} className="week-row">
-            {week.map((day, dIndex) => (                  //Rendering each day inside each week chunk. Invalid days are grayed out.
-              <div
-                key={`${year}-${month+1}-${day || `empty-${dIndex}`}`}
-                //Template literal - day-cell is appended with invalid if day is falsy / Appended with today-highlight for current day.
-                className={`day-cell
-                  ${day ? "" : "invalid"}
-                  ${(day===currentDate.getDate() && month === currentDate.getMonth() && year === currentDate.getFullYear()) ? "today-highlight" : ""}
-                  ${weights[day] ? "filled-day" : "empty-day"}
-                `}
-              >
-                {day && (                                 //Rendering only if the days are valid > Input form is appended
-                  <>
-                    {/* Each component should be inside separate divs. Here day is under one, and input works on its own*/}
-                    {/* Wrapping day and weather icon in one div with flexbox so it appears side by side, wheareas weight input will be displayed below */}
-                    {/* Left - Day number */}
-                    <div className="day-header">
-                        <div>{day}</div>
-                    {/* Right - Weather icon */}
-                    { toggleWeather &&
-                      (month === currentDate.getMonth() && year === currentDate.getFullYear())   //Added validations to only display weather icon for the current month & year.
-                      && weather[day]?.icon && (                            //Optional chaining. Icon is only rendered if it exists in the backend.
-                        <img 
-                          src={`https://openweathermap.org/img/wn/${weather[day].icon}.png`} 
-                          alt={weather[day].description || "Weather icon"}
-                          title={weather[day].description || "Weather icon"}
-                          className="weather-icon"
-                        />
-                      )}
-                    </div>
+      <CalendarGrid
+        weeks={weeks}
+        year={year}
+        month={month}
+        currentDate={currentDate}
+        weights={weights}
+        errors={errors}
+        draft={draft}
+        weather={weather}
+        toggleWeather={toggleWeather}
+        handleWeightChange={handleWeightChange}
+        handleInputValidation={handleInputValidation}
+        calculateWeeklyAverage={calculateWeeklyAverage}
+        freeEditMode={freeEditMode}
+      />
 
-                    {/* Weight input (Always take full width)*/}
-                    {/* Only currentDate can be edited. Rest are disabled */}
-                      <div className={`tooltip-wrapper ${errors[day] ? "show" : ""}`}>
-                        <input type="number"
-                          value={draft[day] || ""}
-                          placeholder={errors[day] ? errors[day] : "kg"}
-                          className={`input ${errors[day] ? "invalid" : ""}`}
-                          onChange={(e) => handleWeightChange(day, e.target.value)}
-                          onBlur={(e) => handleInputValidation(day, e.target.value)}
-                          disabled={!freeEditMode && (day != currentDate.getDate() || month != currentDate.getMonth() || year != currentDate.getFullYear())}
-                        />
-                        <div className="tooltip">Invalid weight</div>
-                      </div>  
-                  </>
-                )}
-              </div>
-            ))}
-            <div className="weekly-average">
-              {calculateWeeklyAverage(week, weights)}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* --MONTHLY AVERAGE FIELD-- */}
-      <div className="monthly-average">
-          {
-            (monthlyAverage && (hasMonthEnded(currentDate, month, year)))
-            ? `Monthly Average: ${monthlyAverage}`
-            : null
-          }
-      </div>
-
-      {/* --CALENDAR GRID-- */}
-   {/*   
-      <div style={{
-          display: "grid", 
-          gridTemplateColumns: "repeat(7, 1fr)", 
-          textAlign: "center",
-          gap: "5px"
-        }}
-      >
-        {daysArray.map((day, index) => (
-          <div
-            key={`${year}-${month + 1}-${day || `empty-${index}`}`} //Unique key value yyyy-mm-dd / yyyy-mm-empty-0,1,2...
-            style={{
-              border: "1px solid gray",
-              padding: "10px",
-              backgroundColor: day ? "black" : "#f5f5f523", //Gray background for empty slots
-              color: "white"
-            }}
-          >
-            {day && (
-              <>
-                {<div style={{marginBottom: "5px"}}>{day}</div>}
-                <input type="number"
-                placeholder="kg"
-                value={weights[day] || ""}
-                onChange={(e)=> handleWeightChange(day, e.target.value)}
-                style={{width: "100%", marginTop: "5px"}}
-                />
-              </>
-            )}
-          </div>
-        ))}
-      </div> 
-      */}
-      {/* Debug line to check useStates are working correctly */}
-      {/*<pre>{JSON.stringify(weights, null, 2)}</pre>*/} 
+      <MonthlyAverage
+        monthlyAverage={monthlyAverage}
+        currentDate={currentDate}
+        month={month}
+        year={year}
+        hasMonthEnded={hasMonthEnded}
+      />
     </div>
   );
+
 }
 
 export default Calendar;

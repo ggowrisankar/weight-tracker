@@ -1,41 +1,174 @@
-.toggle-button {
+/* ===== HEADER SECTION ===== */
+
+.header-container {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   width: 100%;
 }
 
-.settings-btn, .weather-btn, .logout-btn, .reset-btn {
+.left-controls,
+.right-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.verified-inline,
+.unverified-inline {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+/* Icons - smaller and aligned */
+.icon-green {
+  color: #22c55e;      /* ✅ green for verified */
+  width: 1rem;
+  height: 1rem;
+  cursor: default;
+  vertical-align: middle;
+}
+
+.icon-red {
+  color: #ef4444;      /* ✅ red for unverified */
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+
+/* Logout button smaller and cleaner */
+.logout-btn {
+  padding: 4px 6px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  margin-left: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  border-color: #646cff;
+}
+
+/* Verified / Unverified status containers */
+.verified-status,
+.unverified-status {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  position: relative;
+}
+
+.unverified-inline .email-tooltip {
+  top: 1.25rem;
+}
+
+/* Email tooltip */
+.email-tooltip {
+  position: absolute;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1f2937;
+  color: white;
+  font-size: 0.75rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  width: 11rem;
+  pointer-events: none;
+}
+
+.email-tooltip.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(2px);
+}
+
+.unverified-status:hover .email-tooltip {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.verify-button {
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.verify-button:hover {
+  background-color: #2563eb;
+}
+
+.message {
+  font-size: 0.625rem;
+  margin-top: 0.25rem;
+}
+
+/* Toggle buttons */
+.settings-btn,
+.weather-btn,
+.logout-btn,
+.reset-btn {
   padding: 8px;
   border-radius: 10px;
 }
 
-.settings-btn.active, .weather-btn.active {
+.settings-btn.active,
+.weather-btn.active {
   background-color: rgb(66, 86, 153);
-  /*transform: scale(1.2);  /* make it pop */
 }
 
+/* ===== SAVE STATUS & LOADING ===== */
+
 .loading-text {
-  font-size: 0.875rem;   /* Tailwind's text-sm */
-  color: #6b7280;        /* Tailwind's gray-500 */
-  font-style: italic;    /* italic */
-  margin-top: 0.5rem;    /* Tailwind's mt-2 = 8px = 0.5rem */
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 0.5rem;
 }
 
 .save-status {
-  font-size: 0.875rem;   /* equivalent to Tailwind's text-sm */
-  color: #6b7280;        /* Tailwind's gray-500 */
-  margin-top: 0.25rem;   /* Tailwind's mt-1 */
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
 }
 
 .save-status .saved {
-  color: #16a34a;        /* Tailwind's green-600 */
+  color: #16a34a;
 }
 
 .save-status .error {
-  color: #ef4444;        /* Tailwind's red-500 */
+  color: #ef4444;
 }
 
-/* Month + Year Navigation */
+/* ===== CALENDAR STRUCTURE ===== */
+
 .calendar-header {
   display: flex;
   justify-content: space-between;
@@ -48,7 +181,7 @@
   border: 1px solid transparent;
   padding: 0.5em 1em;
   background-color: #1a1a1a;
-  color: white(112, 112, 183);
+  color: white;
   cursor: pointer;
 }
 
@@ -56,16 +189,14 @@
   border-color: #646cff;
 }
 
-/* Weekday Headers */
 .weekdays {
   display: grid;
-  grid-template-columns: repeat(8, 1fr); /* 7 days + 1 avg column */
+  grid-template-columns: repeat(8, 1fr);
   margin-bottom: 10px;
   font-weight: bold;
   text-align: center;
 }
 
-/* Weekly Grid */
 .week-row {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
@@ -73,7 +204,8 @@
   margin-bottom: 10px;
 }
 
-/* Each day cell */
+/* ===== DAY CELLS ===== */
+
 .day-cell {
   border: 1px solid gray;
   padding: 10px;
@@ -85,7 +217,7 @@
 }
 
 .day-cell.invalid {
-  background-color: #f5f5f523; /* gray for empty slots */
+  background-color: #f5f5f523;
   color: #999;
 }
 
@@ -102,7 +234,6 @@
   background-color: black;
 }
 
-/* Day + weather container */
 .day-header {
   display: flex;
   justify-content: space-between;
@@ -110,7 +241,7 @@
   width: 100%;
 }
 
-/* Weight input */
+/* Input fields */
 .day-cell input {
   width: 100%;
   margin-top: 5px;
@@ -119,31 +250,7 @@
   border: 1px solid #ccc;
 }
 
-/* Weekly Average Box */
-.weekly-average {
-  display: grid;
-  place-items: center;
-  border: 1px solid gray;
-  padding: 10px;
-  font-weight: bold;
-  background-color: black;
-}
-
-/* Monthly Average */
-.monthly-average {
-  text-align: center;
-  margin-top: 20px;
-  font-weight: bold;
-}
-
-/* Weather icon size */
-.weather-icon {
-  width: 24px;
-  height: 24px;
-  margin-left: 5px;
-}
-
-/* Error validation cell */
+/* Invalid input tooltip */
 .input.invalid {
   border-color: red;
   opacity: 1;
@@ -155,123 +262,67 @@
   opacity: 1;
 }
 
-.tooltip-wrapper {                /* anchor container */
-  position: relative;             /* make this element the "anchor" for the absolutely positioned tooltip */
-  display: inline-block;          /* keep input + tooltip sized only around content */
-}
-
-.tooltip {                        /* hidden box that appears above input */
-  visibility: hidden;             /* hidden by default */
-  background-color: red;        /* tooltip background */
-  color: white;                 /* text color */
-  text-align: center;             /* center the text */
-  border-radius: 4px;             /* rounded corners */
-  padding: 4px 8px;               /* spacing inside tooltip */
-  
-  position: absolute;             /* position relative to .tooltip-wrapper */
-  bottom: 125%;                   /* move it above the input (125% of input height) */
-  left: 50%;                      /* horizontally center */
-  transform: translateX(-50%);    /* adjust back to true center */
-  
-  white-space: nowrap;            /* prevent tooltip text from breaking into multiple lines */
-  font-size: 12px;                /* smaller text for subtle look */
-  z-index: 10;                    /* ensure it shows on top of other elements */
-  
-  opacity: 0;                     /* start invisible */
-  transition: opacity 0.3s;       /* fade-in effect */
-}
-
-.tooltip::after {                 /* small arrow pointing to input */
-  content: "";                    /* required for pseudo-element */
-  position: absolute;
-  top: 100%;                      /* place the arrow under the tooltip */
-  left: 50%;                      /* center arrow horizontally */
-  margin-left: -5px;              /* offset half the arrow width */
-  
-  border-width: 5px;              /* size of the arrow */
-  border-style: solid;
-  border-color: red transparent transparent transparent; /* arrow is red and points down */
-}
-
-.tooltip-wrapper.show .tooltip {  /* conditionally reveals tooltip */
-  visibility: visible;            /* make tooltip visible when parent has .show */
-  opacity: 1;                     /* fade-in */
-}
-
-/* EMAIL VERIFICATION CSS */
-/* General layout styles */
-.verified-status,
-.unverified-status {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem; /* Tailwind gap-1 */
+/* Tooltip system */
+.tooltip-wrapper {
   position: relative;
+  display: inline-block;
 }
 
-/* Icon colors and sizing */
-.icon-green {
-  color: #22c55e; /* Tailwind text-green-500 */
-  width: 1.25rem; /* 20px (w-5) */
-  height: 1.25rem;
-}
-
-.icon-red {
-  color: #ef4444; /* Tailwind text-red-500 */
-  width: 1.25rem;
-  height: 1.25rem;
-  cursor: pointer;
-}
-
-/* Tooltip */
-.email-tooltip {
+.tooltip {
+  visibility: hidden;
+  background-color: red;
+  color: white;
+  text-align: center;
+  border-radius: 4px;
+  padding: 4px 8px;
   position: absolute;
-  top: 1.5rem; /* roughly top-6 */
+  bottom: 125%;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #1f2937; /* Tailwind bg-gray-800 */
-  color: white;
-  font-size: 0.75rem; /* text-xs */
-  border-radius: 0.375rem; /* rounded-md */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 0.5rem;
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  white-space: nowrap;
+  font-size: 12px;
   z-index: 10;
-  width: 11rem; /* w-44 */
-  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
-.email-tooltip.visible {
+.tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: red transparent transparent transparent;
+}
+
+.tooltip-wrapper.show .tooltip {
+  visibility: visible;
   opacity: 1;
-  pointer-events: auto;
-  transform: translateX(-50%) translateY(2px);
 }
 
-/* Show tooltip on hover */
-.unverified-status:hover .email-tooltip {
-  opacity: 1;
-  pointer-events: auto;
+/* ===== WEEKLY & MONTHLY AVERAGES ===== */
+
+.weekly-average {
+  display: grid;
+  place-items: center;
+  border: 1px solid gray;
+  padding: 10px;
+  font-weight: bold;
+  background-color: black;
 }
 
-/* Verification button */
-.verify-button {
-  margin-top: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  background-color: #3b82f6; /* Tailwind bg-blue-500 */
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+.monthly-average {
+  text-align: center;
+  margin-top: 20px;
+  font-weight: bold;
 }
 
-.verify-button:hover {
-  background-color: #2563eb; /* Tailwind hover:bg-blue-600 */
-}
+/* ===== WEATHER ICON ===== */
 
-/* Message text */
-.message {
-  font-size: 0.625rem; /* text-[10px] */
-  margin-top: 0.25rem;
+.weather-icon {
+  width: 24px;
+  height: 24px;
+  margin-left: 5px;
 }
