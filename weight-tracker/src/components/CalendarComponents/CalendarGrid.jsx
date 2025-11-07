@@ -6,9 +6,10 @@ export default function CalendarGrid({
 }) {
   return (
     <div className="calendar-grid">
-      {weeks.map((week, wIndex) => (
+      {/* --WEEKLY GRID-- */}
+      {weeks.map((week, wIndex) => (                                          //Rendering week chunks one by one
         <div key={wIndex} className="week-row">
-          {week.map((day, dIndex) => (
+          {week.map((day, dIndex) => (                                        //Rendering each day inside each week chunk. Invalid days are grayed out.
             <DayCell
               key={`${year}-${month+1}-${day || `empty-${dIndex}`}`}
               day={day}
