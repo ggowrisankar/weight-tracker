@@ -20,6 +20,7 @@ mongoose.connect(process.env.MONGO_URI)
 });*/
 
 const app = express();                              //Our server
+app.set("trust proxy", 1);                          //Enable trust for first proxy
 const PORT = process.env.PORT || 3000;              //Using available ports after checking in env. Server will be available at https://localhost:3000 as default.
 
 app.use(express.json());                            //Middleware to parse JSON
