@@ -29,7 +29,7 @@ This allows Express to trust the "X-Forwarded-*" headers that Render automatical
 By default, Express does NOT trust these headers because they could be spoofed if the app were directly exposed to the internet. However, since Render always sits between the client and our app, we can safely trust the first proxy (Render itself).
 This setting ensures that properties like req.ip, req.protocol, and req.secure
 correctly reflect the real client connection details instead of the proxy’s internal ones. */
-app.set("trust proxy", 1);
+app.set('trust proxy', 1);
 
 const PORT = process.env.PORT || 3000;              //Using available ports after checking in env. Server will be available at https://localhost:3000 as default.
 
@@ -66,7 +66,7 @@ app.use(
   })
 );
 
-//app.use(globalLimiter);                             //Apply global rate limiter to all routes (In prod, 429 error should be handled gracefully in frontend)
+app.use(globalLimiter);                             //Apply global rate limiter to all routes (In prod, 429 error should be handled gracefully in frontend)
 
 /*//Test User code
 import bcrypt from "bcrypt";

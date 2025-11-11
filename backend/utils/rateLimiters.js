@@ -13,7 +13,11 @@ export const verificationLimiter = rateLimit({
   max: 3,                         //Limit each IP to 3 requests per 10mins
   message: { message: "Too many verification requests attempted. Please try again later." },
   standardHeaders: true,          //Includes RateLimit-headers (Limit, Remaining, Reset) in responses to inform clients how many requests remain and when the limit resets
-  legacyHeaders: false            //Disable old legacy headers (X-RateLimit-Limit, X-RateLimit-Remaining, etc.)
+  legacyHeaders: false,            //Disable old legacy headers (X-RateLimit-Limit, X-RateLimit-Remaining, etc.)
+  handler: (req, res, next, options) => {
+    console.log("Rate limit hit for IP:", req.ip);
+    res.status(options.statusCode).send(options.message);
+  }
 });
 
 //Rate limiter for reset password requests:
@@ -22,5 +26,9 @@ export const resetPasswordLimiter = rateLimit({
   max: 5,                         //Limit each IP to 5 requests per 10mins
   message: { message: "Too many password reset requests attempted. Please try again later." },
   standardHeaders: true,          //Includes RateLimit-headers (Limit, Remaining, Reset) in responses to inform clients how many requests remain and when the limit resets
-  legacyHeaders: false            //Disable old legacy headers (X-RateLimit-Limit, X-RateLimit-Remaining, etc.)
+  legacyHeaders: false,            //Disable old legacy headers (X-RateLimit-Limit, X-RateLimit-Remaining, etc.)
+  handler: (req, res, next, options) => {
+    console.log("Rate limit hit for IP:", req.ip);
+    res.status(options.statusCode).send(options.message);
+  }
 });
