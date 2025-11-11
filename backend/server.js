@@ -66,7 +66,7 @@ app.use(
   })
 );
 
-app.use(globalLimiter);                             //Apply global rate limiter to all routes (In prod, 429 error should be handled gracefully in frontend)
+//app.use(globalLimiter);                             //Apply global rate limiter to all routes (In prod, 429 error should be handled gracefully in frontend)
 
 /*//Test User code
 import bcrypt from "bcrypt";
