@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 async function getWeightJson(url) {
   const token = localStorage.getItem("wt_token");

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getCachedWeather, fetchWeather, getCurrentPositionPromise } from "../utils/weatherUtils";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 // ---- Custom hook to manage weather ----
 export default function useWeather(year, month, toggleWeather) {
@@ -32,7 +33,7 @@ export default function useWeather(year, month, toggleWeather) {
           return;
         }
       
-        const url = `http://localhost:3000/weather?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`
+        const url = `${API_BASE}/weather?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`
         await fetchWeather(url, cacheKey, setWeather);
       }
       catch (geoErr) {
@@ -53,7 +54,7 @@ export default function useWeather(year, month, toggleWeather) {
               return;
             }
 
-            const url = `http://localhost:3000/weather?city=${ipData.city}`;
+            const url = `${API_BASE}/weather?city=${ipData.city}`;
             await fetchWeather(url, cacheKey, setWeather);
             return;                         //To avoid fallback if lookup succeeds.
           }
@@ -72,7 +73,7 @@ export default function useWeather(year, month, toggleWeather) {
           return;
         }
 
-        const defaultUrl = `http://localhost:3000/weather?city=${defaultCity}`;    //Default url
+        const defaultUrl = `${API_BASE}/weather?city=${defaultCity}`;    //Default url
         await fetchWeather(defaultUrl, cacheKey, setWeather);
       };
     }

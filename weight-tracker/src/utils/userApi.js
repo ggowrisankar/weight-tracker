@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";        //Variables exposed to the client should start with "VITE_" in env files in Vite.
+const API_BASE = import.meta.env.VITE_API_BASE_URL;        //Variables exposed to the client should start with "VITE_" in env files in Vite.
 
 async function postJson(url, body) {
   //Sending POST request to the backend
