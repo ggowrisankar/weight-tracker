@@ -92,5 +92,5 @@ app.use("/weights", authMiddleware, weightRoutes);  //Mount middleware once it h
 
 //Starts the server
 app.listen(PORT, () =>
-  console.log(`Proxy running at http://localhost:${PORT}`)
+  console.log(`Server running on port: ${PORT}`)
 );
