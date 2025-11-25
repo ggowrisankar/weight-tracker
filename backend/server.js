@@ -4,6 +4,7 @@ import express from "express";                          //Framework for creating
 import cors from "cors";                                //Importing CORS to bypass restrictions
 import mongoose from "mongoose";                        //Importing mongoose library to interact with MongoDB
 import { globalLimiter } from "./utils/rateLimiters.js";
+import pingRoute from "./routes/pingRoute.js";
 import weatherRoutes from "./routes/weatherRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import weightRoutes from "./routes/weightRoutes.js";
@@ -85,7 +86,8 @@ async function  testUser() {
 }
 testUser();*/
 
-//Mount routes - prefix all paths inside weatherRoutes with /weather
+//Mount routes
+app.use("/ping", pingRoute);
 app.use("/weather", weatherRoutes);                 //For any request starting with /weather, use the router imported from weatherRoutes.js
 app.use("/auth", authRoutes);                       //Auth requests
 app.use("/weights", authMiddleware, weightRoutes);  //Mount middleware once it hits the /weights request before redirecting to weightRoutes
