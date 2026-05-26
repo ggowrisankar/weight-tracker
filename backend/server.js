@@ -9,6 +9,7 @@ import weatherRoutes from "./routes/weatherRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import weightRoutes from "./routes/weightRoutes.js";
 import { authMiddleware } from "./middleware/authMiddleware.js";
+import quoteRoutes from "./routes/quoteRoutes.js";
 
 //Connecting the backend to MongoDB server
 mongoose.connect(process.env.MONGO_URI)
@@ -91,6 +92,7 @@ app.use("/ping", pingRoute);
 app.use("/weather", weatherRoutes);                 //For any request starting with /weather, use the router imported from weatherRoutes.js
 app.use("/auth", authRoutes);                       //Auth requests
 app.use("/weights", authMiddleware, weightRoutes);  //Mount middleware once it hits the /weights request before redirecting to weightRoutes
+app.use("/quotes", quoteRoutes);
 
 //Starts the server
 app.listen(PORT, () =>

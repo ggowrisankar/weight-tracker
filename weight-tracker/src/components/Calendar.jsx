@@ -5,6 +5,7 @@ import useWeather from "../hooks/useWeather";
 import { chunkIntoWeeks, calculateWeeklyAverage, calculateMonthlyAverage, hasMonthEnded } from "../utils/calendarUtils";
 import { apiFetch } from "../api";
 import { CalendarToolbar, CalendarHeader, SaveStatus, WeekdaysRow, CalendarGrid, MonthlyAverage } from "./CalendarComponents";  //Imports automatically from index.js
+import DailyQuote from "./CalendarComponents/DailyQuote";
 import "../styles/Calendar.css";
 
 function Calendar () {
@@ -140,6 +141,8 @@ function Calendar () {
 
   return (
     <div className="calendar-container">
+      <DailyQuote />
+
       <CalendarToolbar
         isAuthenticated={isAuthenticated}
         user={user}
